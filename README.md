@@ -1,18 +1,18 @@
-# UAE Health-Focused Catering Platform API
+# api
 
-A comprehensive Node.js + Express API for a multi-restaurant food delivery platform with complete nutritional tracking.
+Node.js + Express API with Supabase backend.
 
 ## Features
 
-- ✅ **Multi-Restaurant Support**: One owner can manage multiple restaurants
-- ✅ **Complete Nutrition Tracking**: Every menu item includes detailed nutritional information
-- ✅ **Health-Focused**: Personalized meal recommendations based on user fitness goals
-- ✅ **JWT Authentication**: Secure authentication with Supabase
-- ✅ **Role-Based Access Control**: Customer, Restaurant Owner, Driver, Admin, Support roles
-- ✅ **Order Management**: Complete order lifecycle from creation to delivery
-- ✅ **Input Validation**: Comprehensive validation using Zod
-- ✅ **Error Handling**: Centralized error handling middleware
-- ✅ **TypeScript**: Fully typed codebase
+- Multi-Restaurant Support: One owner can manage multiple restaurants
+- Complete Nutrition Tracking: Every menu item includes detailed nutritional information
+- Health-Focused: Personalized meal recommendations based on user fitness goals
+- JWT Authentication: Secure authentication with Supabase
+- Role-Based Access Control: Customer, Restaurant Owner, Driver, Admin, Support roles
+- Order Management: Complete order lifecycle from creation to delivery
+- Input Validation: Comprehensive validation using Zod
+- Error Handling: Centralized error handling middleware
+- TypeScript: Fully typed codebase
 
 ## Tech Stack
 
@@ -384,25 +384,17 @@ All validation errors are automatically caught and formatted.
 
 ## Next Steps
 
-1. ✅ Database schema created
-2. ✅ Authentication system implemented
-3. ✅ Restaurant management endpoints
-4. ✅ Menu management with nutrition
-5. ✅ Order management system
-6. ⏳ Payment integration (Stripe)
-7. ⏳ Driver management system
-8. ⏳ Real-time notifications (WebSocket)
-9. ⏳ Analytics and reporting
-10. ⏳ Support ticket system
-
-## Contributing
-
-This is a private project for the UAE Health-Focused Catering Platform.
+- Database schema created
+- Authentication system implemented
+- Restaurant management endpoints
+- Menu management with nutrition
+- Order management system
+- Payment integration (Stripe) - pending
+- Driver management system - pending
+- Real-time notifications (WebSocket) - pending
+- Analytics and reporting - pending
+- Support ticket system - pending
 
 ## License
 
 Proprietary - All rights reserved
-
----
-
-**Built with ❤️ for health-conscious food lovers in the UAE**
