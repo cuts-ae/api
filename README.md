@@ -43,18 +43,20 @@ A comprehensive Node.js + Express API for a multi-restaurant food delivery platf
 
 3. **Set up environment variables**:
 
-   The `.env` file is already configured with your Supabase credentials:
+   Create a `.env` file in the root directory:
    ```
-   SUPABASE_URL=https://rqrzcxwcgcyzewnkxfgd.supabase.co
-   SUPABASE_ANON_KEY=your_anon_key
-   SUPABASE_SERVICE_KEY=your_service_key
-   JWT_SECRET=baqir-osaed-ayush-arryan
-   PORT=3000
+   SUPABASE_URL=your_supabase_project_url
+   SUPABASE_ANON_KEY=your_supabase_anon_key
+   SUPABASE_SERVICE_KEY=your_supabase_service_role_key
+   JWT_SECRET=your_random_secret_key_here
+   PORT=45000
+   NODE_ENV=development
+   FRONTEND_URL=http://localhost:45001
    ```
 
 4. **Set up the database**:
 
-   a. Open your Supabase dashboard: https://supabase.com/dashboard
+   a. Open your Supabase dashboard
 
    b. Navigate to SQL Editor
 

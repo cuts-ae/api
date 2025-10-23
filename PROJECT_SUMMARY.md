@@ -228,10 +228,10 @@ See `README.md` for:
 ## 🔧 Environment Variables
 
 ```env
-SUPABASE_URL=https://rqrzcxwcgcyzewnkxfgd.supabase.co
+SUPABASE_URL=your_supabase_url
 SUPABASE_ANON_KEY=your_anon_key
 SUPABASE_SERVICE_KEY=your_service_key
-JWT_SECRET=baqir-osaed-ayush-arryan
+JWT_SECRET=your_random_secret_key
 PORT=3000
 ```
 

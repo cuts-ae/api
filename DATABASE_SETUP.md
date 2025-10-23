@@ -11,7 +11,7 @@ You have **TWO SQL files** that need to be run in your Supabase dashboard:
 
 ### Step 1: Open Supabase SQL Editor
 
-1. Go to: https://supabase.com/dashboard/project/rqrzcxwcgcyzewnkxfgd
+1. Go to: https://supabase.com/dashboard/project/YOUR_PROJECT_ID
 2. Click on **SQL Editor** in the left sidebar
 3. You should see a blank SQL editor
 

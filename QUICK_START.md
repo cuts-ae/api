@@ -4,7 +4,7 @@
 
 ### Step 1: Database Setup (2 minutes)
 
-1. Open your Supabase dashboard: https://supabase.com/dashboard/project/rqrzcxwcgcyzewnkxfgd
+1. Open your Supabase dashboard: https://supabase.com/dashboard/project/YOUR_PROJECT_ID
 
 2. Go to **SQL Editor** (left sidebar)
 
