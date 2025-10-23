@@ -1,0 +1,144 @@
+name: Deploy to Oracle Cloud
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run unit tests
+        run: npm run test:unit
+        env:
+          NODE_ENV: test
+          JWT_SECRET: test-secret-key-for-ci
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          PORT: 45002
+          FRONTEND_URL: http://localhost:45001
+
+      - name: Build TypeScript
+        run: npm run build
+
+  deploy:
+    name: Deploy to Oracle Cloud
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build TypeScript
+        run: npm run build
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.ORACLE_SSH_KEY }}" > ~/.ssh/oracle_key
+          chmod 600 ~/.ssh/oracle_key
+          ssh-keyscan -H ${{ secrets.ORACLE_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Deploy to Oracle Cloud
+        env:
+          ORACLE_HOST: ${{ secrets.ORACLE_HOST }}
+          ORACLE_USER: ${{ secrets.ORACLE_USER }}
+        run: |
+          # Create deployment package (exclude node_modules, .git, tests, env files)
+          tar --exclude='node_modules' \
+              --exclude='.git' \
+              --exclude='coverage' \
+              --exclude='*.test.ts' \
+              --exclude='__tests__' \
+              --exclude='.env*' \
+              -czf deploy.tar.gz \
+              dist/ \
+              package.json \
+              package-lock.json
+
+          # Copy to server
+          scp -i ~/.ssh/oracle_key deploy.tar.gz $ORACLE_USER@$ORACLE_HOST:/tmp/
+
+          # Deploy on server
+          ssh -i ~/.ssh/oracle_key $ORACLE_USER@$ORACLE_HOST << 'ENDSSH'
+            set -e
+
+            # Setup environment
+            export NVM_DIR="$HOME/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+
+            # Navigate to app directory
+            cd ~/cuts.ae
+
+            # Backup current version
+            timestamp=$(date +%Y%m%d_%H%M%S)
+            mkdir -p ~/backups
+            tar -czf ~/backups/cuts-api-$timestamp.tar.gz dist/ package.json || true
+
+            # Extract new version
+            tar -xzf /tmp/deploy.tar.gz
+            rm /tmp/deploy.tar.gz
+
+            # Install production dependencies
+            npm ci --production
+
+            # Restart with PM2
+            pm2 restart cuts-api || pm2 start dist/index.js --name cuts-api --env production
+
+            # Save PM2 config
+            pm2 save
+
+            # Check status
+            echo "Deployment complete!"
+            pm2 status cuts-api
+
+            # Keep only last 5 backups
+            cd ~/backups && ls -t cuts-api-*.tar.gz | tail -n +6 | xargs -r rm
+          ENDSSH
+
+      - name: Verify deployment
+        env:
+          ORACLE_HOST: ${{ secrets.ORACLE_HOST }}
+          ORACLE_USER: ${{ secrets.ORACLE_USER }}
+        run: |
+          # Wait a moment for the service to restart
+          sleep 5
+
+          # Check health endpoint via SSH
+          ssh -i ~/.ssh/oracle_key $ORACLE_USER@$ORACLE_HOST \
+            "curl -f http://localhost:45000/health || exit 1"
+
+          echo "✅ Deployment verified successfully!"
+
+      - name: Cleanup
+        if: always()
+        run: rm -f ~/.ssh/oracle_key
