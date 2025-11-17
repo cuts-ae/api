@@ -62,10 +62,7 @@ pm2 restart cuts-api
 
 ### GitHub Actions CI/CD
 
-Auto-deploys on push to main. Required secrets:
-- `SSH_PRIVATE_KEY` - Your SSH private key
-- `SSH_HOST` - `34.130.93.201`
-- `SSH_USER` - `sour`
+Auto-deploys on push to main.
 
 ## Demo Credentials
 
