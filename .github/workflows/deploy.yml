@@ -20,11 +20,10 @@ jobs:
         with:
           host: 34.130.93.201
           username: sour
-          key: \${{ secrets.SSH_PRIVATE_KEY }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             cd ~/cuts-api
             git pull origin main
-            cd api
             npm install
             npm run build
             pm2 restart cuts-api || pm2 start dist/index.js --name cuts-api
