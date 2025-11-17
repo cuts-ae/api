@@ -27,11 +27,10 @@ describe('Authentication Endpoints', () => {
   afterAll(async () => {
     // Cleanup: Delete test user
     if (userId) {
-      await supabase
-        .from('users')
-        .delete()
-        .eq('id', userId);
+      await pool.query('DELETE FROM users WHERE id = $1', [userId]);
     }
+    // Close pool connection
+    await pool.end();
   });
 
   describe('POST /api/v1/auth/register', () => {
@@ -76,10 +75,7 @@ describe('Authentication Endpoints', () => {
       expect(response.body.user.role).toBe(UserRole.RESTAURANT_OWNER);
 
       // Cleanup
-      await supabase
-        .from('users')
-        .delete()
-        .eq('id', response.body.user.id);
+      await pool.query('DELETE FROM users WHERE id = $1', [response.body.user.id]);
     });
 
     it('should fail with duplicate email', async () => {
@@ -362,10 +358,7 @@ describe('Authentication Endpoints', () => {
       expect(meResponse.body.user).not.toHaveProperty('password_hash');
 
       // Cleanup
-      await supabase
-        .from('users')
-        .delete()
-        .eq('id', registerResponse.body.user.id);
+      await pool.query('DELETE FROM users WHERE id = $1', [registerResponse.body.user.id]);
     });
   });
 });
