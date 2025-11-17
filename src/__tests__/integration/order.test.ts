@@ -5,7 +5,7 @@ import restaurantRoutes from '../../routes/restaurant.routes';
 import menuRoutes from '../../routes/menu.routes';
 import orderRoutes from '../../routes/order.routes';
 import { errorHandler } from '../../middleware/errorHandler';
-import { supabase } from '../../config/database';
+import pool from "../../config/database";
 import { UserRole, OrderStatus, PaymentStatus } from '../../types';
 
 // Create test app

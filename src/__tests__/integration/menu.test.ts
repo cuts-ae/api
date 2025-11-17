@@ -4,7 +4,7 @@ import authRoutes from '../../routes/auth.routes';
 import restaurantRoutes from '../../routes/restaurant.routes';
 import menuRoutes from '../../routes/menu.routes';
 import { errorHandler } from '../../middleware/errorHandler';
-import { supabase } from '../../config/database';
+import pool from "../../config/database";
 import { UserRole } from '../../types';
 
 // Create test app

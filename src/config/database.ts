@@ -1,23 +1,28 @@
-import { createClient } from '@supabase/supabase-js';
+import { Pool } from 'pg';
 import dotenv from 'dotenv';
 
 dotenv.config();
 
-const supabaseUrl = process.env.SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY!;
-
-// Service role client for admin operations
-export const supabase = createClient(supabaseUrl, supabaseServiceKey, {
-  auth: {
-    autoRefreshToken: false,
-    persistSession: false
-  }
+// PostgreSQL connection pool
+const pool = new Pool({
+  host: process.env.DB_HOST || 'localhost',
+  port: parseInt(process.env.DB_PORT || '5432'),
+  database: process.env.DB_NAME || 'cuts_ae',
+  user: process.env.DB_USER || 'postgres',
+  password: process.env.DB_PASSWORD,
+  max: 20,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 2000,
 });
 
-// Anon client for public operations
-export const supabaseAnon = createClient(
-  supabaseUrl,
-  process.env.SUPABASE_ANON_KEY!
-);
+// Test connection
+pool.on('connect', () => {
+  console.log('Connected to PostgreSQL database');
+});
 
-export default supabase;
+pool.on('error', (err) => {
+  console.error('Unexpected error on idle client', err);
+  process.exit(-1);
+});
+
+export default pool;

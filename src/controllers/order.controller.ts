@@ -1,6 +1,6 @@
 import { Response } from 'express';
 import { AuthRequest } from '../middleware/auth';
-import supabase from '../config/database';
+import pool from '../config/database';
 import { AppError } from '../middleware/errorHandler';
 import { OrderStatus, PaymentStatus, UserRole } from '../types';
 
@@ -9,19 +9,38 @@ export class OrderController {
    * Create a new order
    */
   static async create(req: AuthRequest, res: Response) {
-    const { items, delivery_address, delivery_instructions, scheduled_for } =
-      req.body;
+    const { items, delivery_address, delivery_instructions, scheduled_for } = req.body;
 
-    // Validate items and calculate totals
+    // Fetch all menu items in one query (PERFORMANCE OPTIMIZED)
+    const menuItemIds = items.map((item: any) => item.menu_item_id);
+    const menuResult = await pool.query(
+      `SELECT mi.id, mi.base_price, mi.restaurant_id, mi.is_available,
+              json_agg(json_build_object(
+                'calories', ni.calories,
+                'protein', ni.protein,
+                'carbohydrates', ni.carbohydrates,
+                'fat', ni.fat
+              )) FILTER (WHERE ni.id IS NOT NULL) as nutritional_info
+       FROM menu_items mi
+       LEFT JOIN nutritional_info ni ON mi.id = ni.menu_item_id
+       WHERE mi.id = ANY($1)
+       GROUP BY mi.id`,
+      [menuItemIds]
+    );
+
+    if (menuResult.rows.length !== items.length) {
+      throw new AppError('One or more menu items not found', 400);
+    }
+
+    // Create lookup map
+    const menuItemMap = new Map(menuResult.rows.map(item => [item.id, item]));
+
+    // Validate and calculate totals
     let subtotal = 0;
     const restaurants = new Set<string>();
 
     for (const item of items) {
-      const { data: menuItem } = await supabase
-        .from('menu_items')
-        .select('base_price, restaurant_id, is_available')
-        .eq('id', item.menu_item_id)
-        .single();
+      const menuItem = menuItemMap.get(item.menu_item_id);
 
       if (!menuItem || !menuItem.is_available) {
         throw new AppError(`Menu item ${item.menu_item_id} is not available`, 400);
@@ -31,54 +50,46 @@ export class OrderController {
       subtotal += menuItem.base_price * item.quantity;
     }
 
-    // Validate max 2 restaurants
     if (restaurants.size > 2) {
       throw new AppError('Cannot order from more than 2 restaurants', 400);
     }
 
     // Calculate fees
-    const deliveryFee = 10; // AED 10 flat delivery fee
-    const serviceFee = subtotal * 0.05; // 5% service fee
+    const deliveryFee = 10;
+    const serviceFee = subtotal * 0.05;
     const totalAmount = subtotal + deliveryFee + serviceFee;
 
     // Generate order number
     const orderNumber = `ORD-${new Date().toISOString().split('T')[0].replace(/-/g, '')}-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
 
     // Create order
-    const { data: order, error: orderError } = await supabase
-      .from('orders')
-      .insert({
-        order_number: orderNumber,
-        customer_id: req.user!.userId,
-        restaurants: Array.from(restaurants),
-        status: OrderStatus.PENDING,
-        delivery_address,
+    const orderResult = await pool.query(
+      `INSERT INTO orders
+       (order_number, customer_id, restaurants, status, delivery_address, delivery_instructions,
+        scheduled_for, subtotal, delivery_fee, service_fee, total_amount, payment_status, created_at, updated_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, NOW(), NOW())
+       RETURNING *`,
+      [
+        orderNumber,
+        req.user!.userId,
+        Array.from(restaurants),
+        OrderStatus.PENDING,
+        JSON.stringify(delivery_address),
         delivery_instructions,
-        scheduled_for: scheduled_for ? new Date(scheduled_for).toISOString() : null,
+        scheduled_for ? new Date(scheduled_for).toISOString() : null,
         subtotal,
-        delivery_fee: deliveryFee,
-        service_fee: serviceFee,
-        total_amount: totalAmount,
-        payment_status: PaymentStatus.PENDING,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      })
-      .select()
-      .single();
+        deliveryFee,
+        serviceFee,
+        totalAmount,
+        PaymentStatus.PENDING
+      ]
+    );
 
-    if (orderError) {
-      console.error('Order creation error:', orderError);
-      throw new AppError('Failed to create order', 500);
-    }
+    const order = orderResult.rows[0];
 
-    // Create order items with nutritional summary
-    for (const item of items) {
-      const { data: menuItem } = await supabase
-        .from('menu_items')
-        .select('base_price, restaurant_id, nutritional_info(*)')
-        .eq('id', item.menu_item_id)
-        .single();
-
+    // Create all order items in batch (PERFORMANCE OPTIMIZED)
+    const orderItemsValues = items.map((item: any) => {
+      const menuItem = menuItemMap.get(item.menu_item_id);
       const nutrition = menuItem?.nutritional_info?.[0];
       const nutritionalSummary = nutrition
         ? {
@@ -89,30 +100,42 @@ export class OrderController {
           }
         : null;
 
-      await supabase.from('order_items').insert({
-        order_id: order.id,
-        menu_item_id: item.menu_item_id,
-        restaurant_id: item.restaurant_id,
-        quantity: item.quantity,
-        base_price: menuItem!.base_price,
-        selected_variants: item.selected_variants || [],
-        item_total: menuItem!.base_price * item.quantity,
-        special_instructions: item.special_instructions,
-        nutritional_summary: nutritionalSummary,
-        created_at: new Date().toISOString()
-      });
-    }
+      return `('${order.id}', '${item.menu_item_id}', '${item.restaurant_id}', ${item.quantity}, ${menuItem.base_price}, '{}', ${menuItem.base_price * item.quantity}, ${item.special_instructions ? `'${item.special_instructions}'` : 'NULL'}, '${JSON.stringify(nutritionalSummary)}', NOW())`;
+    }).join(',');
+
+    await pool.query(
+      `INSERT INTO order_items
+       (order_id, menu_item_id, restaurant_id, quantity, base_price, selected_variants,
+        item_total, special_instructions, nutritional_summary, created_at)
+       VALUES ${orderItemsValues}`
+    );
 
     // Fetch complete order with items
-    const { data: completeOrder } = await supabase
-      .from('orders')
-      .select('*, order_items(*, menu_items(name, image_url))')
-      .eq('id', order.id)
-      .single();
+    const completeOrderResult = await pool.query(
+      `SELECT o.*,
+              json_agg(json_build_object(
+                'id', oi.id,
+                'menu_item_id', oi.menu_item_id,
+                'quantity', oi.quantity,
+                'base_price', oi.base_price,
+                'item_total', oi.item_total,
+                'special_instructions', oi.special_instructions,
+                'menu_items', json_build_object(
+                  'name', mi.name,
+                  'image_url', mi.image_url
+                )
+              )) as order_items
+       FROM orders o
+       LEFT JOIN order_items oi ON o.id = oi.order_id
+       LEFT JOIN menu_items mi ON oi.menu_item_id = mi.id
+       WHERE o.id = $1
+       GROUP BY o.id`,
+      [order.id]
+    );
 
     res.status(201).json({
       message: 'Order created successfully',
-      order: completeOrder
+      order: completeOrderResult.rows[0]
     });
   }
 
@@ -122,15 +145,36 @@ export class OrderController {
   static async getById(req: AuthRequest, res: Response) {
     const { id } = req.params;
 
-    const { data: order, error } = await supabase
-      .from('orders')
-      .select('*, order_items(*, menu_items(name, image_url, restaurants(name)))')
-      .eq('id', id)
-      .single();
+    const orderResult = await pool.query(
+      `SELECT o.*,
+              json_agg(json_build_object(
+                'id', oi.id,
+                'menu_item_id', oi.menu_item_id,
+                'quantity', oi.quantity,
+                'base_price', oi.base_price,
+                'item_total', oi.item_total,
+                'menu_items', json_build_object(
+                  'name', mi.name,
+                  'image_url', mi.image_url,
+                  'restaurants', json_build_object(
+                    'name', r.name
+                  )
+                )
+              )) FILTER (WHERE oi.id IS NOT NULL) as order_items
+       FROM orders o
+       LEFT JOIN order_items oi ON o.id = oi.order_id
+       LEFT JOIN menu_items mi ON oi.menu_item_id = mi.id
+       LEFT JOIN restaurants r ON mi.restaurant_id = r.id
+       WHERE o.id = $1
+       GROUP BY o.id`,
+      [id]
+    );
 
-    if (error || !order) {
+    if (orderResult.rows.length === 0) {
       throw new AppError('Order not found', 404);
     }
+
+    const order = orderResult.rows[0];
 
     // Check authorization
     if (
@@ -138,14 +182,12 @@ export class OrderController {
       req.user!.role !== UserRole.ADMIN
     ) {
       // Check if user is restaurant owner
-      const restaurantIds = order.restaurants;
-      const { data: restaurants } = await supabase
-        .from('restaurants')
-        .select('id')
-        .eq('owner_id', req.user!.userId)
-        .in('id', restaurantIds);
+      const restaurantCheck = await pool.query(
+        'SELECT id FROM restaurants WHERE owner_id = $1 AND id = ANY($2)',
+        [req.user!.userId, order.restaurants]
+      );
 
-      if (!restaurants || restaurants.length === 0) {
+      if (restaurantCheck.rows.length === 0) {
         throw new AppError('Forbidden', 403);
       }
     }
@@ -159,41 +201,67 @@ export class OrderController {
   static async getOrders(req: AuthRequest, res: Response) {
     const { status, restaurant_id } = req.query;
 
-    let query = supabase
-      .from('orders')
-      .select('*, order_items(*, menu_items(name, image_url))');
+    let query = `
+      SELECT o.*,
+             json_agg(json_build_object(
+               'id', oi.id,
+               'menu_item_id', oi.menu_item_id,
+               'quantity', oi.quantity,
+               'base_price', oi.base_price,
+               'item_total', oi.item_total,
+               'menu_items', json_build_object(
+                 'name', mi.name,
+                 'image_url', mi.image_url
+               )
+             )) FILTER (WHERE oi.id IS NOT NULL) as order_items
+      FROM orders o
+      LEFT JOIN order_items oi ON o.id = oi.order_id
+      LEFT JOIN menu_items mi ON oi.menu_item_id = mi.id
+      WHERE 1=1
+    `;
+    const params: any[] = [];
+    let paramCount = 1;
 
     // Filter based on user role
     if (req.user!.role === UserRole.CUSTOMER) {
-      query = query.eq('customer_id', req.user!.userId);
+      query += ` AND o.customer_id = $${paramCount}`;
+      params.push(req.user!.userId);
+      paramCount++;
     } else if (req.user!.role === UserRole.RESTAURANT_OWNER) {
       // Get owner's restaurants
-      const { data: restaurants } = await supabase
-        .from('restaurants')
-        .select('id')
-        .eq('owner_id', req.user!.userId);
+      const restaurantsResult = await pool.query(
+        'SELECT id FROM restaurants WHERE owner_id = $1',
+        [req.user!.userId]
+      );
 
-      const restaurantIds = restaurants?.map((r) => r.id) || [];
-      query = query.overlaps('restaurants', restaurantIds);
+      const restaurantIds = restaurantsResult.rows.map(r => r.id);
+
+      if (restaurantIds.length === 0) {
+        return res.json({ orders: [] });
+      }
+
+      query += ` AND o.restaurants && $${paramCount}`;
+      params.push(restaurantIds);
+      paramCount++;
     }
 
     if (status) {
-      query = query.eq('status', status);
+      query += ` AND o.status = $${paramCount}`;
+      params.push(status);
+      paramCount++;
     }
 
     if (restaurant_id) {
-      query = query.contains('restaurants', [restaurant_id]);
+      query += ` AND $${paramCount} = ANY(o.restaurants)`;
+      params.push(restaurant_id);
+      paramCount++;
     }
 
-    const { data: orders, error } = await query.order('created_at', {
-      ascending: false
-    });
+    query += ` GROUP BY o.id ORDER BY o.created_at DESC LIMIT 100`;
 
-    if (error) {
-      throw new AppError('Failed to fetch orders', 500);
-    }
+    const result = await pool.query(query, params);
 
-    res.json({ orders });
+    res.json({ orders: result.rows });
   }
 
   /**
@@ -203,46 +271,37 @@ export class OrderController {
     const { id } = req.params;
     const { status } = req.body;
 
-    const { data: order } = await supabase
-      .from('orders')
-      .select('restaurants')
-      .eq('id', id)
-      .single();
+    const orderResult = await pool.query(
+      'SELECT restaurants FROM orders WHERE id = $1',
+      [id]
+    );
 
-    if (!order) {
+    if (orderResult.rows.length === 0) {
       throw new AppError('Order not found', 404);
     }
 
-    // Verify authorization (restaurant owner or admin)
-    if (req.user!.role !== UserRole.ADMIN) {
-      const { data: restaurants } = await supabase
-        .from('restaurants')
-        .select('id')
-        .eq('owner_id', req.user!.userId)
-        .in('id', order.restaurants);
+    const order = orderResult.rows[0];
 
-      if (!restaurants || restaurants.length === 0) {
+    // Verify authorization
+    if (req.user!.role !== UserRole.ADMIN) {
+      const restaurantCheck = await pool.query(
+        'SELECT id FROM restaurants WHERE owner_id = $1 AND id = ANY($2)',
+        [req.user!.userId, order.restaurants]
+      );
+
+      if (restaurantCheck.rows.length === 0) {
         throw new AppError('Forbidden', 403);
       }
     }
 
-    const { data: updated, error } = await supabase
-      .from('orders')
-      .update({
-        status,
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', id)
-      .select()
-      .single();
-
-    if (error) {
-      throw new AppError('Failed to update order status', 500);
-    }
+    const updateResult = await pool.query(
+      'UPDATE orders SET status = $1, updated_at = NOW() WHERE id = $2 RETURNING *',
+      [status, id]
+    );
 
     res.json({
       message: 'Order status updated successfully',
-      order: updated
+      order: updateResult.rows[0]
     });
   }
 
@@ -253,15 +312,16 @@ export class OrderController {
     const { id } = req.params;
     const { reason } = req.body;
 
-    const { data: order } = await supabase
-      .from('orders')
-      .select('customer_id, status')
-      .eq('id', id)
-      .single();
+    const orderResult = await pool.query(
+      'SELECT customer_id, status FROM orders WHERE id = $1',
+      [id]
+    );
 
-    if (!order) {
+    if (orderResult.rows.length === 0) {
       throw new AppError('Order not found', 404);
     }
+
+    const order = orderResult.rows[0];
 
     // Only customer or admin can cancel
     if (
@@ -271,28 +331,19 @@ export class OrderController {
       throw new AppError('Forbidden', 403);
     }
 
-    // Can't cancel if already picked up or delivered
+    // Cannot cancel if already picked up or delivered
     if ([OrderStatus.PICKED_UP, OrderStatus.IN_TRANSIT, OrderStatus.DELIVERED].includes(order.status)) {
       throw new AppError('Cannot cancel order at this stage', 400);
     }
 
-    const { data: updated, error } = await supabase
-      .from('orders')
-      .update({
-        status: OrderStatus.CANCELLED,
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', id)
-      .select()
-      .single();
-
-    if (error) {
-      throw new AppError('Failed to cancel order', 500);
-    }
+    const updateResult = await pool.query(
+      'UPDATE orders SET status = $1, updated_at = NOW() WHERE id = $2 RETURNING *',
+      [OrderStatus.CANCELLED, id]
+    );
 
     res.json({
       message: 'Order cancelled successfully',
-      order: updated
+      order: updateResult.rows[0]
     });
   }
 }

@@ -2,7 +2,7 @@ import request from 'supertest';
 import express, { Application } from 'express';
 import authRoutes from '../../routes/auth.routes';
 import { errorHandler } from '../../middleware/errorHandler';
-import { supabase } from '../../config/database';
+import pool from "../../config/database";
 import { UserRole } from '../../types';
 
 // Create test app

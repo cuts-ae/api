@@ -2,7 +2,7 @@ import { Response } from 'express';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { AuthRequest } from '../middleware/auth';
-import supabase from '../config/database';
+import pool from '../config/database';
 import { AppError } from '../middleware/errorHandler';
 import { JWTPayload, UserRole } from '../types';
 
@@ -14,13 +14,12 @@ export class AuthController {
     const { email, password, first_name, last_name, phone, role } = req.body;
 
     // Check if user already exists
-    const { data: existingUser } = await supabase
-      .from('users')
-      .select('id')
-      .eq('email', email)
-      .single();
+    const existingUser = await pool.query(
+      'SELECT id FROM users WHERE email = $1',
+      [email]
+    );
 
-    if (existingUser) {
+    if (existingUser.rows.length > 0) {
       throw new AppError('Email already registered', 400);
     }
 
@@ -28,24 +27,14 @@ export class AuthController {
     const password_hash = await bcrypt.hash(password, 10);
 
     // Create user
-    const { data: user, error } = await supabase
-      .from('users')
-      .insert({
-        email,
-        password_hash,
-        first_name,
-        last_name,
-        phone,
-        role,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      })
-      .select()
-      .single();
+    const result = await pool.query(
+      `INSERT INTO users (email, password_hash, first_name, last_name, phone, role, created_at, updated_at)
+       VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())
+       RETURNING id, email, first_name, last_name, role`,
+      [email, password_hash, first_name, last_name, phone, role]
+    );
 
-    if (error) {
-      throw new AppError('Failed to create user', 500);
-    }
+    const user = result.rows[0];
 
     // Generate JWT
     const token = jwt.sign(
@@ -78,13 +67,14 @@ export class AuthController {
     const { email, password } = req.body;
 
     // Find user
-    const { data: user, error } = await supabase
-      .from('users')
-      .select('*')
-      .eq('email', email)
-      .single();
+    const result = await pool.query(
+      'SELECT * FROM users WHERE email = $1',
+      [email]
+    );
 
-    if (error || !user) {
+    const user = result.rows[0];
+
+    if (!user) {
       throw new AppError('Invalid credentials', 401);
     }
 
@@ -96,10 +86,10 @@ export class AuthController {
     }
 
     // Update last login
-    await supabase
-      .from('users')
-      .update({ last_login: new Date().toISOString() })
-      .eq('id', user.id);
+    await pool.query(
+      'UPDATE users SET last_login = NOW() WHERE id = $1',
+      [user.id]
+    );
 
     // Generate JWT
     const token = jwt.sign(
@@ -129,13 +119,14 @@ export class AuthController {
    * Get current user
    */
   static async me(req: AuthRequest, res: Response) {
-    const { data: user, error } = await supabase
-      .from('users')
-      .select('id, email, first_name, last_name, role, phone, created_at')
-      .eq('id', req.user!.userId)
-      .single();
+    const result = await pool.query(
+      'SELECT id, email, first_name, last_name, role, phone, created_at FROM users WHERE id = $1',
+      [req.user!.userId]
+    );
 
-    if (error) {
+    const user = result.rows[0];
+
+    if (!user) {
       throw new AppError('User not found', 404);
     }
 

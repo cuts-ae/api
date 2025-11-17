@@ -1,6 +1,6 @@
 import { Response } from 'express';
 import { AuthRequest } from '../middleware/auth';
-import supabase from '../config/database';
+import pool from '../config/database';
 import { AppError } from '../middleware/errorHandler';
 import { UserRole } from '../types';
 
@@ -12,28 +12,44 @@ export class MenuController {
     const { restaurantId } = req.params;
     const { category, is_available } = req.query;
 
-    let query = supabase
-      .from('menu_items')
-      .select('*, nutritional_info(*)')
-      .eq('restaurant_id', restaurantId);
+    let query = `
+      SELECT mi.*,
+        json_agg(json_build_object(
+          'id', ni.id,
+          'serving_size', ni.serving_size,
+          'calories', ni.calories,
+          'protein', ni.protein,
+          'carbohydrates', ni.carbohydrates,
+          'fat', ni.fat,
+          'fiber', ni.fiber,
+          'sugar', ni.sugar,
+          'sodium', ni.sodium,
+          'allergens', ni.allergens
+        )) FILTER (WHERE ni.id IS NOT NULL) as nutritional_info
+      FROM menu_items mi
+      LEFT JOIN nutritional_info ni ON mi.id = ni.menu_item_id
+      WHERE mi.restaurant_id = $1
+    `;
+    const params: any[] = [restaurantId];
+    let paramCount = 2;
 
     if (category) {
-      query = query.eq('category', category);
+      query += ` AND mi.category = $${paramCount}`;
+      params.push(category);
+      paramCount++;
     }
 
     if (is_available !== undefined) {
-      query = query.eq('is_available', is_available === 'true');
+      query += ` AND mi.is_available = $${paramCount}`;
+      params.push(is_available === 'true');
+      paramCount++;
     }
 
-    const { data: menuItems, error } = await query.order('created_at', {
-      ascending: false
-    });
+    query += ` GROUP BY mi.id ORDER BY mi.created_at DESC`;
 
-    if (error) {
-      throw new AppError('Failed to fetch menu items', 500);
-    }
+    const result = await pool.query(query, params);
 
-    res.json({ menuItems });
+    res.json({ menuItems: result.rows });
   }
 
   /**
@@ -43,20 +59,18 @@ export class MenuController {
     const { restaurantId } = req.params;
 
     // Verify restaurant ownership
-    const { data: restaurant } = await supabase
-      .from('restaurants')
-      .select('owner_id')
-      .eq('id', restaurantId)
-      .single();
+    const ownerCheck = await pool.query(
+      'SELECT owner_id FROM restaurants WHERE id = $1',
+      [restaurantId]
+    );
 
-    if (!restaurant) {
+    if (ownerCheck.rows.length === 0) {
       throw new AppError('Restaurant not found', 404);
     }
 
-    if (
-      restaurant.owner_id !== req.user!.userId &&
-      req.user!.role !== UserRole.ADMIN
-    ) {
+    const restaurant = ownerCheck.rows[0];
+
+    if (restaurant.owner_id !== req.user!.userId && req.user!.role !== UserRole.ADMIN) {
       throw new AppError('Forbidden', 403);
     }
 
@@ -70,31 +84,17 @@ export class MenuController {
       prep_time
     } = req.body;
 
-    const { data: menuItem, error } = await supabase
-      .from('menu_items')
-      .insert({
-        restaurant_id: restaurantId,
-        name,
-        description,
-        image_url,
-        base_price,
-        category,
-        is_available: is_available !== undefined ? is_available : true,
-        prep_time,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      })
-      .select()
-      .single();
-
-    if (error) {
-      console.error('Menu item creation error:', error);
-      throw new AppError('Failed to create menu item', 500);
-    }
+    const result = await pool.query(
+      `INSERT INTO menu_items
+       (restaurant_id, name, description, image_url, base_price, category, is_available, prep_time, created_at, updated_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())
+       RETURNING *`,
+      [restaurantId, name, description, image_url, base_price, category, is_available !== undefined ? is_available : true, prep_time]
+    );
 
     res.status(201).json({
       message: 'Menu item created successfully',
-      menuItem
+      menuItem: result.rows[0]
     });
   }
 
@@ -104,43 +104,38 @@ export class MenuController {
   static async updateMenuItem(req: AuthRequest, res: Response) {
     const { id } = req.params;
 
-    // Get menu item with restaurant info
-    const { data: menuItem } = await supabase
-      .from('menu_items')
-      .select('restaurant_id, restaurants(owner_id)')
-      .eq('id', id)
-      .single();
+    // Get menu item with restaurant ownership info
+    const checkResult = await pool.query(
+      `SELECT mi.restaurant_id, r.owner_id
+       FROM menu_items mi
+       JOIN restaurants r ON mi.restaurant_id = r.id
+       WHERE mi.id = $1`,
+      [id]
+    );
 
-    if (!menuItem) {
+    if (checkResult.rows.length === 0) {
       throw new AppError('Menu item not found', 404);
     }
 
-    const restaurant: any = menuItem.restaurants;
+    const { owner_id } = checkResult.rows[0];
 
-    if (
-      restaurant.owner_id !== req.user!.userId &&
-      req.user!.role !== UserRole.ADMIN
-    ) {
+    if (owner_id !== req.user!.userId && req.user!.role !== UserRole.ADMIN) {
       throw new AppError('Forbidden', 403);
     }
 
-    const { data: updated, error } = await supabase
-      .from('menu_items')
-      .update({
-        ...req.body,
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', id)
-      .select()
-      .single();
+    // Build update query
+    const fields = Object.keys(req.body);
+    const values = Object.values(req.body);
+    const setClause = fields.map((field, i) => `${field} = $${i + 2}`).join(', ');
 
-    if (error) {
-      throw new AppError('Failed to update menu item', 500);
-    }
+    const result = await pool.query(
+      `UPDATE menu_items SET ${setClause}, updated_at = NOW() WHERE id = $1 RETURNING *`,
+      [id, ...values]
+    );
 
     res.json({
       message: 'Menu item updated successfully',
-      menuItem: updated
+      menuItem: result.rows[0]
     });
   }
 
@@ -151,30 +146,25 @@ export class MenuController {
     const { id } = req.params;
 
     // Verify ownership
-    const { data: menuItem } = await supabase
-      .from('menu_items')
-      .select('restaurant_id, restaurants(owner_id)')
-      .eq('id', id)
-      .single();
+    const checkResult = await pool.query(
+      `SELECT r.owner_id
+       FROM menu_items mi
+       JOIN restaurants r ON mi.restaurant_id = r.id
+       WHERE mi.id = $1`,
+      [id]
+    );
 
-    if (!menuItem) {
+    if (checkResult.rows.length === 0) {
       throw new AppError('Menu item not found', 404);
     }
 
-    const restaurant: any = menuItem.restaurants;
+    const { owner_id } = checkResult.rows[0];
 
-    if (
-      restaurant.owner_id !== req.user!.userId &&
-      req.user!.role !== UserRole.ADMIN
-    ) {
+    if (owner_id !== req.user!.userId && req.user!.role !== UserRole.ADMIN) {
       throw new AppError('Forbidden', 403);
     }
 
-    const { error } = await supabase.from('menu_items').delete().eq('id', id);
-
-    if (error) {
-      throw new AppError('Failed to delete menu item', 500);
-    }
+    await pool.query('DELETE FROM menu_items WHERE id = $1', [id]);
 
     res.json({ message: 'Menu item deleted successfully' });
   }
@@ -187,42 +177,32 @@ export class MenuController {
     const { is_available } = req.body;
 
     // Verify ownership
-    const { data: menuItem } = await supabase
-      .from('menu_items')
-      .select('restaurant_id, restaurants(owner_id)')
-      .eq('id', id)
-      .single();
+    const checkResult = await pool.query(
+      `SELECT r.owner_id
+       FROM menu_items mi
+       JOIN restaurants r ON mi.restaurant_id = r.id
+       WHERE mi.id = $1`,
+      [id]
+    );
 
-    if (!menuItem) {
+    if (checkResult.rows.length === 0) {
       throw new AppError('Menu item not found', 404);
     }
 
-    const restaurant: any = menuItem.restaurants;
+    const { owner_id } = checkResult.rows[0];
 
-    if (
-      restaurant.owner_id !== req.user!.userId &&
-      req.user!.role !== UserRole.ADMIN
-    ) {
+    if (owner_id !== req.user!.userId && req.user!.role !== UserRole.ADMIN) {
       throw new AppError('Forbidden', 403);
     }
 
-    const { data: updated, error } = await supabase
-      .from('menu_items')
-      .update({
-        is_available,
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', id)
-      .select()
-      .single();
-
-    if (error) {
-      throw new AppError('Failed to update availability', 500);
-    }
+    const result = await pool.query(
+      `UPDATE menu_items SET is_available = $1, updated_at = NOW() WHERE id = $2 RETURNING *`,
+      [is_available, id]
+    );
 
     res.json({
       message: 'Availability updated successfully',
-      menuItem: updated
+      menuItem: result.rows[0]
     });
   }
 
@@ -233,22 +213,21 @@ export class MenuController {
     const { id } = req.params;
 
     // Verify menu item exists and check ownership
-    const { data: menuItem } = await supabase
-      .from('menu_items')
-      .select('restaurant_id, restaurants(owner_id)')
-      .eq('id', id)
-      .single();
+    const checkResult = await pool.query(
+      `SELECT r.owner_id
+       FROM menu_items mi
+       JOIN restaurants r ON mi.restaurant_id = r.id
+       WHERE mi.id = $1`,
+      [id]
+    );
 
-    if (!menuItem) {
+    if (checkResult.rows.length === 0) {
       throw new AppError('Menu item not found', 404);
     }
 
-    const restaurant: any = menuItem.restaurants;
+    const { owner_id } = checkResult.rows[0];
 
-    if (
-      restaurant.owner_id !== req.user!.userId &&
-      req.user!.role !== UserRole.ADMIN
-    ) {
+    if (owner_id !== req.user!.userId && req.user!.role !== UserRole.ADMIN) {
       throw new AppError('Forbidden', 403);
     }
 
@@ -264,74 +243,40 @@ export class MenuController {
       allergens
     } = req.body;
 
-    // Check if nutrition info already exists
-    const { data: existing } = await supabase
-      .from('nutritional_info')
-      .select('id')
-      .eq('menu_item_id', id)
-      .is('variant_id', null)
-      .single();
+    // Check if nutrition info exists
+    const existingResult = await pool.query(
+      'SELECT id FROM nutritional_info WHERE menu_item_id = $1 AND variant_id IS NULL',
+      [id]
+    );
 
-    let nutritionInfo;
-    let error;
+    let result;
 
-    if (existing) {
+    if (existingResult.rows.length > 0) {
       // Update existing
-      const result = await supabase
-        .from('nutritional_info')
-        .update({
-          serving_size,
-          calories,
-          protein,
-          carbohydrates,
-          fat,
-          fiber,
-          sugar,
-          sodium,
-          allergens,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', existing.id)
-        .select()
-        .single();
-
-      nutritionInfo = result.data;
-      error = result.error;
+      result = await pool.query(
+        `UPDATE nutritional_info
+         SET serving_size = $1, calories = $2, protein = $3, carbohydrates = $4,
+             fat = $5, fiber = $6, sugar = $7, sodium = $8, allergens = $9, updated_at = NOW()
+         WHERE id = $10
+         RETURNING *`,
+        [serving_size, calories, protein, carbohydrates, fat, fiber, sugar, sodium, allergens, existingResult.rows[0].id]
+      );
     } else {
       // Create new
-      const result = await supabase
-        .from('nutritional_info')
-        .insert({
-          menu_item_id: id,
-          serving_size,
-          calories,
-          protein,
-          carbohydrates,
-          fat,
-          fiber,
-          sugar,
-          sodium,
-          allergens,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        })
-        .select()
-        .single();
-
-      nutritionInfo = result.data;
-      error = result.error;
+      result = await pool.query(
+        `INSERT INTO nutritional_info
+         (menu_item_id, serving_size, calories, protein, carbohydrates, fat, fiber, sugar, sodium, allergens, created_at, updated_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW(), NOW())
+         RETURNING *`,
+        [id, serving_size, calories, protein, carbohydrates, fat, fiber, sugar, sodium, allergens]
+      );
     }
 
-    if (error) {
-      console.error('Nutrition info error:', error);
-      throw new AppError('Failed to save nutritional information', 500);
-    }
-
-    res.status(existing ? 200 : 201).json({
-      message: existing
+    res.status(existingResult.rows.length > 0 ? 200 : 201).json({
+      message: existingResult.rows.length > 0
         ? 'Nutritional information updated successfully'
         : 'Nutritional information added successfully',
-      nutritionInfo
+      nutritionInfo: result.rows[0]
     });
   }
 }
