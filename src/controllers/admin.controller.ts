@@ -19,14 +19,20 @@ export const getAnalytics = async (req: Request, res: Response) => {
 
     // Get active restaurants
     const restaurantsResult = await pool.query(
-      "SELECT COUNT(*) as count FROM restaurants WHERE status = 'active'"
+      "SELECT COUNT(*) as count FROM restaurants WHERE is_active = true"
     );
 
     // Get recent orders
     const recentOrdersResult = await pool.query(`
-      SELECT o.id, o.total_amount, o.status, r.name as restaurant
+      SELECT
+        o.id,
+        o.total_amount,
+        o.status,
+        COALESCE(
+          (SELECT name FROM restaurants WHERE id = o.restaurants[1]),
+          'Multiple'
+        ) as restaurant
       FROM orders o
-      JOIN restaurants r ON o.restaurant_id = r.id
       ORDER BY o.created_at DESC
       LIMIT 5
     `);
@@ -36,11 +42,11 @@ export const getAnalytics = async (req: Request, res: Response) => {
       SELECT
         r.id,
         r.name,
-        COUNT(o.id) as orders,
-        COALESCE(SUM(o.total_amount), 0) as revenue
+        COUNT(DISTINCT CASE WHEN o.status = 'delivered' THEN oi.order_id END) as orders,
+        COALESCE(SUM(CASE WHEN o.status = 'delivered' THEN oi.item_total ELSE 0 END), 0) as revenue
       FROM restaurants r
-      LEFT JOIN orders o ON r.id = o.restaurant_id
-      WHERE o.status = 'delivered'
+      LEFT JOIN order_items oi ON r.id = oi.restaurant_id
+      LEFT JOIN orders o ON oi.order_id = o.id
       GROUP BY r.id, r.name
       ORDER BY revenue DESC
       LIMIT 5
@@ -102,7 +108,7 @@ export const approveRestaurant = async (req: Request, res: Response) => {
     const { id } = req.params;
 
     const result = await pool.query(
-      "UPDATE restaurants SET status = 'active' WHERE id = $1 RETURNING *",
+      "UPDATE restaurants SET is_active = true WHERE id = $1 RETURNING *",
       [id]
     );
 
@@ -166,23 +172,80 @@ export const approveDriver = async (req: Request, res: Response) => {
   }
 };
 
+// Get invoice details by ID
+export const getInvoiceDetails = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    // Mock implementation - return invoice details based on ID
+    const invoiceResult = await pool.query(`
+      SELECT
+        oi.restaurant_id,
+        r.name as restaurant_name,
+        DATE_TRUNC('month', o.created_at) as period_start,
+        DATE_TRUNC('month', o.created_at) + INTERVAL '1 month' as period_end,
+        SUM(oi.item_total) as amount,
+        'paid' as status,
+        MIN(o.created_at) as created_at,
+        json_agg(json_build_object(
+          'order_id', o.id,
+          'order_number', o.order_number,
+          'amount', oi.item_total,
+          'date', o.created_at
+        )) as orders
+      FROM order_items oi
+      JOIN orders o ON oi.order_id = o.id
+      JOIN restaurants r ON oi.restaurant_id = r.id
+      WHERE o.status = 'delivered'
+      GROUP BY oi.restaurant_id, r.name, DATE_TRUNC('month', o.created_at)
+      ORDER BY period_start DESC
+      LIMIT 1 OFFSET $1
+    `, [parseInt(id) - 1]);
+
+    if (invoiceResult.rows.length === 0) {
+      return res.status(404).json({ success: false, error: "Invoice not found" });
+    }
+
+    const invoice = invoiceResult.rows[0];
+
+    res.json({
+      success: true,
+      data: {
+        id: parseInt(id),
+        restaurant_id: invoice.restaurant_id,
+        restaurant_name: invoice.restaurant_name,
+        amount: parseFloat(invoice.amount),
+        status: invoice.status,
+        period_start: invoice.period_start,
+        period_end: invoice.period_end,
+        created_at: invoice.created_at,
+        orders: invoice.orders
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching invoice details:", error);
+    res.status(500).json({ success: false, error: "Failed to fetch invoice details" });
+  }
+};
+
 // Get all invoices
 export const getInvoices = async (req: Request, res: Response) => {
   try {
     // For now, generate mock invoices based on orders
     const result = await pool.query(`
       SELECT
-        o.restaurant_id,
+        oi.restaurant_id,
         r.name as restaurant_name,
         DATE_TRUNC('month', o.created_at) as period_start,
         DATE_TRUNC('month', o.created_at) + INTERVAL '1 month' as period_end,
-        SUM(o.total_amount) as amount,
+        SUM(oi.item_total) as amount,
         'paid' as status,
         MIN(o.created_at) as created_at
-      FROM orders o
-      JOIN restaurants r ON o.restaurant_id = r.id
+      FROM order_items oi
+      JOIN orders o ON oi.order_id = o.id
+      JOIN restaurants r ON oi.restaurant_id = r.id
       WHERE o.status = 'delivered'
-      GROUP BY o.restaurant_id, r.name, DATE_TRUNC('month', o.created_at)
+      GROUP BY oi.restaurant_id, r.name, DATE_TRUNC('month', o.created_at)
       ORDER BY period_start DESC
     `);
 
@@ -226,7 +289,17 @@ export const generateInvoice = async (req: Request, res: Response) => {
 export const getUsers = async (req: Request, res: Response) => {
   try {
     const result = await pool.query(`
-      SELECT id, name, email, phone, role, status, created_at, updated_at
+      SELECT
+        id,
+        first_name || ' ' || last_name as name,
+        first_name,
+        last_name,
+        email,
+        phone,
+        role,
+        status,
+        created_at,
+        updated_at
       FROM users
       ORDER BY created_at DESC
     `);
@@ -247,12 +320,14 @@ export const getOrders = async (req: Request, res: Response) => {
     const result = await pool.query(`
       SELECT
         o.*,
-        r.name as restaurant_name,
-        u.name as customer_name,
+        COALESCE(
+          (SELECT name FROM restaurants WHERE id = o.restaurants[1]),
+          'Multiple'
+        ) as restaurant_name,
+        CONCAT(u.first_name, ' ', u.last_name) as customer_name,
         u.email as customer_email
       FROM orders o
-      JOIN restaurants r ON o.restaurant_id = r.id
-      JOIN users u ON o.user_id = u.id
+      JOIN users u ON o.customer_id = u.id
       ORDER BY o.created_at DESC
     `);
 

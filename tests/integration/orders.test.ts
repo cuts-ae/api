@@ -326,7 +326,7 @@ describe('Order API', () => {
     it('should prevent unauthorized access', async () => {
       const otherCustomer = await TestHelpers.registerUser({
         ...testUsers.customer,
-        email: 'other@test.com'
+        email: 'other@cuts.ae'
       });
 
       await request(app)
@@ -504,7 +504,7 @@ describe('Order API', () => {
     it('should prevent unauthorized cancellation', async () => {
       const otherCustomer = await TestHelpers.registerUser({
         ...testUsers.customer,
-        email: 'another@test.com'
+        email: 'another@cuts.ae'
       });
 
       await request(app)

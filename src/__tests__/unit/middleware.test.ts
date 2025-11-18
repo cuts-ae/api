@@ -26,7 +26,7 @@ describe('Authentication Middleware', () => {
     it('should authenticate valid token', () => {
       const payload: JWTPayload = {
         userId: '123',
-        email: 'test@example.com',
+        email: 'test@cuts.ae',
         role: UserRole.CUSTOMER
       };
 
@@ -40,7 +40,7 @@ describe('Authentication Middleware', () => {
       expect(nextFunction).toHaveBeenCalled();
       expect(mockRequest.user).toBeDefined();
       expect(mockRequest.user?.userId).toBe('123');
-      expect(mockRequest.user?.email).toBe('test@example.com');
+      expect(mockRequest.user?.email).toBe('test@cuts.ae');
       expect(mockRequest.user?.role).toBe(UserRole.CUSTOMER);
     });
 
@@ -91,7 +91,7 @@ describe('Authentication Middleware', () => {
     it('should reject expired token', () => {
       const payload: JWTPayload = {
         userId: '123',
-        email: 'test@example.com',
+        email: 'test@cuts.ae',
         role: UserRole.CUSTOMER
       };
 
@@ -122,7 +122,7 @@ describe('Authentication Middleware', () => {
     beforeEach(() => {
       mockRequest.user = {
         userId: '123',
-        email: 'test@example.com',
+        email: 'test@cuts.ae',
         role: UserRole.CUSTOMER
       };
     });

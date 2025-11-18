@@ -39,7 +39,7 @@ describe('End-to-End Workflow Tests', () => {
       const registerResponse = await request(app)
         .post('/api/v1/auth/register')
         .send({
-          email: `e2e-customer-${Date.now()}@example.com`,
+          email: `e2e-customer-${Date.now()}@cuts.ae`,
           password: 'CustomerPassword123!',
           first_name: 'E2E',
           last_name: 'Customer',
@@ -167,7 +167,7 @@ describe('End-to-End Workflow Tests', () => {
       const registerResponse = await request(app)
         .post('/api/v1/auth/register')
         .send({
-          email: `e2e-owner-${Date.now()}@example.com`,
+          email: `e2e-owner-${Date.now()}@cuts.ae`,
           password: 'OwnerPassword123!',
           first_name: 'E2E',
           last_name: 'Owner',
@@ -332,7 +332,7 @@ describe('End-to-End Workflow Tests', () => {
       const ownerResponse = await request(app)
         .post('/api/v1/auth/register')
         .send({
-          email: `workflow-owner-${Date.now()}@example.com`,
+          email: `workflow-owner-${Date.now()}@cuts.ae`,
           password: 'OwnerPassword123!',
           first_name: 'Workflow',
           last_name: 'Owner',
@@ -392,7 +392,7 @@ describe('End-to-End Workflow Tests', () => {
       const customerResponse = await request(app)
         .post('/api/v1/auth/register')
         .send({
-          email: `workflow-customer-${Date.now()}@example.com`,
+          email: `workflow-customer-${Date.now()}@cuts.ae`,
           password: 'CustomerPassword123!',
           first_name: 'Workflow',
           last_name: 'Customer',
@@ -529,7 +529,7 @@ describe('End-to-End Workflow Tests', () => {
       const customerResponse = await request(app)
         .post('/api/v1/auth/register')
         .send({
-          email: `cancel-customer-${Date.now()}@example.com`,
+          email: `cancel-customer-${Date.now()}@cuts.ae`,
           password: 'CustomerPassword123!',
           first_name: 'Cancel',
           last_name: 'Customer',

@@ -1,0 +1,267 @@
+Testing request: /api/v1/auth/login POST
+Found 2 fuzzable blocks.
+Budget: 100 values per parameter.
+Fuzzing request block 16, type: restler_fuzzable_string
+
+Suspect sequence: 500
+POST /api/v1/auth/login
+
+Suspect sequence: 500
+POST /api/v1/auth/login
+
+Suspect sequence: 500
+POST /api/v1/auth/login
+
+Suspect sequence: 500
+POST /api/v1/auth/login
+
+Suspect sequence: 500
+POST /api/v1/auth/login
+
+Suspect sequence: 500
+POST /api/v1/auth/login
+
+Suspect sequence: 500
+POST /api/v1/auth/login
+
+Suspect sequence: 500
+POST /api/v1/auth/login
+
+Suspect sequence: 500
+POST /api/v1/auth/login
+
+Suspect sequence: 500
+POST /api/v1/auth/login
+
+Suspect sequence: 500
+POST /api/v1/auth/login
+
+Suspect sequence: 500
+POST /api/v1/auth/login
+
+Suspect sequence: 500
+POST /api/v1/auth/login
+
+Suspect sequence: 500
+POST /api/v1/auth/login
+
+Suspect sequence: 500
+POST /api/v1/auth/login
+
+Suspect sequence: 500
+POST /api/v1/auth/login
+
+Suspect sequence: 500
+POST /api/v1/auth/login
+
+Suspect sequence: 500
+POST /api/v1/auth/login
+
+Suspect sequence: 500
+POST /api/v1/auth/login
+
+Suspect sequence: 500
+POST /api/v1/auth/login
+
+Suspect sequence: 500
+POST /api/v1/auth/login
+
+Suspect sequence: 500
+POST /api/v1/auth/login
+
+Suspect sequence: 500
+POST /api/v1/auth/login
+
+Suspect sequence: 500
+POST /api/v1/auth/login
+
+Suspect sequence: 500
+POST /api/v1/auth/login
+
+Suspect sequence: 500
+POST /api/v1/auth/login
+
+Suspect sequence: 500
+POST /api/v1/auth/login
+
+Suspect sequence: 500
+POST /api/v1/auth/login
+
+Suspect sequence: 500
+POST /api/v1/auth/login
+
+Suspect sequence: 500
+POST /api/v1/auth/login
+
+Suspect sequence: 500
+POST /api/v1/auth/login
+
+Suspect sequence: 500
+POST /api/v1/auth/login
+
+Suspect sequence: 500
+POST /api/v1/auth/login
+
+Suspect sequence: 500
+POST /api/v1/auth/login
+
+Suspect sequence: 500
+POST /api/v1/auth/login
+
+Suspect sequence: 500
+POST /api/v1/auth/login
+
+Suspect sequence: 500
+POST /api/v1/auth/login
+
+Suspect sequence: 500
+POST /api/v1/auth/login
+
+Suspect sequence: 500
+POST /api/v1/auth/login
+Fuzzing request block 18, type: restler_fuzzable_string
+
+Suspect sequence: 500
+POST /api/v1/auth/login
+
+Suspect sequence: 500
+POST /api/v1/auth/login
+
+Suspect sequence: 500
+POST /api/v1/auth/login
+
+Suspect sequence: 500
+POST /api/v1/auth/login
+
+Suspect sequence: 500
+POST /api/v1/auth/login
+
+Suspect sequence: 500
+POST /api/v1/auth/login
+
+Suspect sequence: 500
+POST /api/v1/auth/login
+
+Suspect sequence: 500
+POST /api/v1/auth/login
+
+Suspect sequence: 500
+POST /api/v1/auth/login
+
+Suspect sequence: 500
+POST /api/v1/auth/login
+
+Suspect sequence: 500
+POST /api/v1/auth/login
+
+Suspect sequence: 500
+POST /api/v1/auth/login
+
+Suspect sequence: 500
+POST /api/v1/auth/login
+
+Suspect sequence: 500
+POST /api/v1/auth/login
+
+Suspect sequence: 500
+POST /api/v1/auth/login
+
+Suspect sequence: 500
+POST /api/v1/auth/login
+
+Suspect sequence: 500
+POST /api/v1/auth/login
+
+Suspect sequence: 500
+POST /api/v1/auth/login
+
+Suspect sequence: 500
+POST /api/v1/auth/login
+
+Suspect sequence: 500
+POST /api/v1/auth/login
+
+Suspect sequence: 500
+POST /api/v1/auth/login
+
+Suspect sequence: 500
+POST /api/v1/auth/login
+
+Suspect sequence: 500
+POST /api/v1/auth/login
+
+Suspect sequence: 500
+POST /api/v1/auth/login
+
+Suspect sequence: 500
+POST /api/v1/auth/login
+
+Suspect sequence: 500
+POST /api/v1/auth/login
+
+Suspect sequence: 500
+POST /api/v1/auth/login
+
+Suspect sequence: 500
+POST /api/v1/auth/login
+
+Suspect sequence: 500
+POST /api/v1/auth/login
+
+Suspect sequence: 500
+POST /api/v1/auth/login
+
+Suspect sequence: 500
+POST /api/v1/auth/login
+
+Suspect sequence: 500
+POST /api/v1/auth/login
+
+Suspect sequence: 500
+POST /api/v1/auth/login
+
+Suspect sequence: 500
+POST /api/v1/auth/login
+
+Suspect sequence: 500
+POST /api/v1/auth/login
+
+Suspect sequence: 500
+POST /api/v1/auth/login
+
+Suspect sequence: 500
+POST /api/v1/auth/login
+
+Suspect sequence: 500
+POST /api/v1/auth/login
+
+Suspect sequence: 500
+POST /api/v1/auth/login
+Tested 200 combinations for request /api/v1/auth/login POST, combination 1
+Testing request: /api/v1/admin/analytics GET
+Testing request: /api/v1/admin/restaurants GET
+Testing request: /api/v1/admin/restaurants/1/approve POST
+Found 1 fuzzable blocks.
+Budget: 100 values per parameter.
+Fuzzing request block 7, type: restler_fuzzable_int
+Tested 100 combinations for request /api/v1/admin/restaurants/1/approve POST, combination 1
+Testing request: /api/v1/admin/drivers GET
+Testing request: /api/v1/admin/drivers/1/approve POST
+Found 1 fuzzable blocks.
+Budget: 100 values per parameter.
+Fuzzing request block 7, type: restler_fuzzable_int
+Tested 100 combinations for request /api/v1/admin/drivers/1/approve POST, combination 1
+Testing request: /api/v1/admin/invoices GET
+Testing request: /api/v1/admin/invoices/1 GET
+Found 1 fuzzable blocks.
+Budget: 100 values per parameter.
+Fuzzing request block 7, type: restler_fuzzable_int
+Tested 100 combinations for request /api/v1/admin/invoices/1 GET, combination 1
+Testing request: /api/v1/admin/invoices/generate POST
+Testing request: /api/v1/admin/users GET
+Testing request: /api/v1/admin/orders GET
+Testing request: /api/v1/orders GET
+Found 1 fuzzable blocks.
+Budget: 100 values per parameter.
+Fuzzing request block 6, type: restler_fuzzable_string
+Tested 100 combinations for request /api/v1/orders GET, combination 1

@@ -1,0 +1,4 @@
+POST /auth/login
+	InvalidJson
+	false
+

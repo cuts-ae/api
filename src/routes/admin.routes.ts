@@ -6,16 +6,15 @@ import {
   getDrivers,
   approveDriver,
   getInvoices,
+  getInvoiceDetails,
   generateInvoice,
   getUsers,
   getOrders,
 } from "../controllers/admin.controller";
-import { authenticate } from "../middleware/auth";
 
 const router = Router();
 
-// All admin routes require authentication and admin role
-router.use(authenticate);
+// All admin routes require admin role (authentication is handled globally, RBAC checks authorization)
 
 // Analytics
 router.get("/analytics", getAnalytics);
@@ -30,6 +29,7 @@ router.post("/drivers/:id/approve", approveDriver);
 
 // Invoices
 router.get("/invoices", getInvoices);
+router.get("/invoices/:id", getInvoiceDetails);
 router.post("/invoices/generate", generateInvoice);
 
 // Users

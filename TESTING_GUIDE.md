@@ -246,7 +246,7 @@ describe('Your Feature', () => {
 
 1. **Use unique test data**
    ```typescript
-   const testEmail = `test-${Date.now()}@example.com`;
+   const testEmail = `test-${Date.now()}@cuts.ae`;
    ```
 
 2. **Clean up after tests**

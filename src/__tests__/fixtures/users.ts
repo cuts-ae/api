@@ -2,7 +2,7 @@ import { UserRole } from '../../types';
 
 export const testUsers = {
   restaurantOwner: {
-    email: 'test-owner@example.com',
+    email: 'test-owner@cuts.ae',
     password: 'TestPassword123!',
     first_name: 'Test',
     last_name: 'Owner',
@@ -10,7 +10,7 @@ export const testUsers = {
     role: UserRole.RESTAURANT_OWNER
   },
   customer: {
-    email: 'test-customer@example.com',
+    email: 'test-customer@cuts.ae',
     password: 'TestPassword123!',
     first_name: 'Test',
     last_name: 'Customer',
@@ -18,7 +18,7 @@ export const testUsers = {
     role: UserRole.CUSTOMER
   },
   admin: {
-    email: 'test-admin@example.com',
+    email: 'test-admin@cuts.ae',
     password: 'TestPassword123!',
     first_name: 'Test',
     last_name: 'Admin',
@@ -26,7 +26,7 @@ export const testUsers = {
     role: UserRole.ADMIN
   },
   driver: {
-    email: 'test-driver@example.com',
+    email: 'test-driver@cuts.ae',
     password: 'TestPassword123!',
     first_name: 'Test',
     last_name: 'Driver',
@@ -47,7 +47,7 @@ export const testRestaurant = {
     country: 'UAE'
   },
   phone: '+971501234567',
-  email: 'test@restaurant.com',
+  email: 'test@cuts.ae',
   operating_hours: {
     monday: { open: '09:00', close: '22:00' },
     tuesday: { open: '09:00', close: '22:00' },

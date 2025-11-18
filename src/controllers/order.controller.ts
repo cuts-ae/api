@@ -59,8 +59,8 @@ export class OrderController {
     const serviceFee = subtotal * 0.05;
     const totalAmount = subtotal + deliveryFee + serviceFee;
 
-    // Generate order number
-    const orderNumber = `ORD-${new Date().toISOString().split('T')[0].replace(/-/g, '')}-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
+    // Generate order number (8 characters: alphanumeric)
+    const orderNumber = Math.random().toString(36).substring(2, 10).toUpperCase();
 
     // Create order
     const orderResult = await pool.query(
@@ -203,18 +203,24 @@ export class OrderController {
 
     let query = `
       SELECT o.*,
+             json_build_object(
+               'first_name', u.first_name,
+               'last_name', u.last_name
+             ) as users,
              json_agg(json_build_object(
                'id', oi.id,
                'menu_item_id', oi.menu_item_id,
                'quantity', oi.quantity,
                'base_price', oi.base_price,
                'item_total', oi.item_total,
+               'special_instructions', oi.special_instructions,
                'menu_items', json_build_object(
                  'name', mi.name,
                  'image_url', mi.image_url
                )
              )) FILTER (WHERE oi.id IS NOT NULL) as order_items
       FROM orders o
+      LEFT JOIN users u ON o.customer_id = u.id
       LEFT JOIN order_items oi ON o.id = oi.order_id
       LEFT JOIN menu_items mi ON oi.menu_item_id = mi.id
       WHERE 1=1
@@ -257,7 +263,7 @@ export class OrderController {
       paramCount++;
     }
 
-    query += ` GROUP BY o.id ORDER BY o.created_at DESC LIMIT 100`;
+    query += ` GROUP BY o.id, u.id ORDER BY o.created_at DESC LIMIT 100`;
 
     const result = await pool.query(query, params);
 

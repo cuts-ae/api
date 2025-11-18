@@ -49,4 +49,11 @@ router.get(
   asyncHandler(RestaurantController.getAnalytics)
 );
 
+router.patch(
+  '/:id/operating-status',
+  authenticate,
+  authorize(UserRole.RESTAURANT_OWNER, UserRole.ADMIN),
+  asyncHandler(RestaurantController.updateOperatingStatus)
+);
+
 export default router;

@@ -34,7 +34,7 @@ describe('Menu Endpoints', () => {
     const ownerResponse = await request(app)
       .post('/api/v1/auth/register')
       .send({
-        email: `menu-owner-${Date.now()}@example.com`,
+        email: `menu-owner-${Date.now()}@cuts.ae`,
         password: 'OwnerPassword123!',
         first_name: 'Menu',
         last_name: 'Owner',
@@ -49,7 +49,7 @@ describe('Menu Endpoints', () => {
     const customerResponse = await request(app)
       .post('/api/v1/auth/register')
       .send({
-        email: `menu-customer-${Date.now()}@example.com`,
+        email: `menu-customer-${Date.now()}@cuts.ae`,
         password: 'CustomerPassword123!',
         first_name: 'Menu',
         last_name: 'Customer',

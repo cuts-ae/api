@@ -7,15 +7,15 @@
 
 INSERT INTO users (id, email, phone, password_hash, first_name, last_name, role, created_at, updated_at) VALUES
 -- Restaurant Owners
-('11111111-1111-1111-1111-111111111111', 'owner1@example.com', '+971501234567', '$2b$10$wZQ/Jo1u0PxUxmhtpJNCf.0f57x.c.QI3.KLo9pLvCUs9E6qrm7ty', 'Ahmed', 'Al Maktoum', 'restaurant_owner', NOW(), NOW()),
-('22222222-2222-2222-2222-222222222222', 'owner2@example.com', '+971501234568', '$2b$10$wZQ/Jo1u0PxUxmhtpJNCf.0f57x.c.QI3.KLo9pLvCUs9E6qrm7ty', 'Fatima', 'Al Nahyan', 'restaurant_owner', NOW(), NOW()),
+('11111111-1111-1111-1111-111111111111', 'owner1@cuts.ae', '+971501234567', '$2b$10$wZQ/Jo1u0PxUxmhtpJNCf.0f57x.c.QI3.KLo9pLvCUs9E6qrm7ty', 'Ahmed', 'Al Maktoum', 'restaurant_owner', NOW(), NOW()),
+('22222222-2222-2222-2222-222222222222', 'owner2@cuts.ae', '+971501234568', '$2b$10$wZQ/Jo1u0PxUxmhtpJNCf.0f57x.c.QI3.KLo9pLvCUs9E6qrm7ty', 'Fatima', 'Al Nahyan', 'restaurant_owner', NOW(), NOW()),
 
 -- Customers
-('33333333-3333-3333-3333-333333333333', 'customer1@example.com', '+971501234569', '$2b$10$wZQ/Jo1u0PxUxmhtpJNCf.0f57x.c.QI3.KLo9pLvCUs9E6qrm7ty', 'Omar', 'Hassan', 'customer', NOW(), NOW()),
-('44444444-4444-4444-4444-444444444444', 'customer2@example.com', '+971501234570', '$2b$10$wZQ/Jo1u0PxUxmhtpJNCf.0f57x.c.QI3.KLo9pLvCUs9E6qrm7ty', 'Sara', 'Ahmed', 'customer', NOW(), NOW()),
+('33333333-3333-3333-3333-333333333333', 'customer1@cuts.ae', '+971501234569', '$2b$10$wZQ/Jo1u0PxUxmhtpJNCf.0f57x.c.QI3.KLo9pLvCUs9E6qrm7ty', 'Omar', 'Hassan', 'customer', NOW(), NOW()),
+('44444444-4444-4444-4444-444444444444', 'customer2@cuts.ae', '+971501234570', '$2b$10$wZQ/Jo1u0PxUxmhtpJNCf.0f57x.c.QI3.KLo9pLvCUs9E6qrm7ty', 'Sara', 'Ahmed', 'customer', NOW(), NOW()),
 
 -- Admin
-('99999999-9999-9999-9999-999999999999', 'admin@example.com', '+971501234599', '$2b$10$wZQ/Jo1u0PxUxmhtpJNCf.0f57x.c.QI3.KLo9pLvCUs9E6qrm7ty', 'Admin', 'User', 'admin', NOW(), NOW());
+('99999999-9999-9999-9999-999999999999', 'admin@cuts.ae', '+971501234599', '$2b$10$wZQ/Jo1u0PxUxmhtpJNCf.0f57x.c.QI3.KLo9pLvCUs9E6qrm7ty', 'Admin', 'User', 'admin', NOW(), NOW());
 
 -- Insert customer profiles
 INSERT INTO customer_profiles (user_id, height, weight, age, gender, activity_level, goal, daily_calorie_target, daily_protein_target, daily_carbs_target, daily_fat_target) VALUES
@@ -117,6 +117,6 @@ INSERT INTO order_items (order_id, menu_item_id, restaurant_id, quantity, base_p
 
 SELECT 'Seed data inserted successfully!' AS message;
 SELECT 'Login credentials for testing:' AS info;
-SELECT 'Restaurant Owner: owner1@example.com / password123' AS credentials;
-SELECT 'Customer: customer1@example.com / password123' AS credentials;
-SELECT 'Admin: admin@example.com / password123' AS credentials;
+SELECT 'Restaurant Owner: owner1@cuts.ae / password123' AS credentials;
+SELECT 'Customer: customer1@cuts.ae / password123' AS credentials;
+SELECT 'Admin: admin@cuts.ae / password123' AS credentials;

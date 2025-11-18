@@ -3,9 +3,9 @@
 
 -- Additional demo users for more restaurants
 INSERT INTO users (id, email, phone, password_hash, first_name, last_name, role, created_at, updated_at) VALUES
-('33333333-3333-3333-3333-333333333333', 'owner3@example.com', '+971501234569', '$2b$10$wZQ/Jo1u0PxUxmhtpJNCf.0f57x.c.QI3.KLo9pLvCUs9E6qrm7ty', 'Khalid', 'Al Suwaidi', 'restaurant_owner', NOW(), NOW()),
-('44444444-4444-4444-4444-444444444444', 'owner4@example.com', '+971501234570', '$2b$10$wZQ/Jo1u0PxUxmhtpJNCf.0f57x.c.QI3.KLo9pLvCUs9E6qrm7ty', 'Layla', 'Mohammed', 'restaurant_owner', NOW(), NOW()),
-('55555555-5555-5555-5555-555555555555', 'owner5@example.com', '+971501234571', '$2b$10$wZQ/Jo1u0PxUxmhtpJNCf.0f57x.c.QI3.KLo9pLvCUs9E6qrm7ty', 'Omar', 'Rashid', 'restaurant_owner', NOW(), NOW())
+('33333333-3333-3333-3333-333333333333', 'owner3@cuts.ae', '+971501234569', '$2b$10$wZQ/Jo1u0PxUxmhtpJNCf.0f57x.c.QI3.KLo9pLvCUs9E6qrm7ty', 'Khalid', 'Al Suwaidi', 'restaurant_owner', NOW(), NOW()),
+('44444444-4444-4444-4444-444444444444', 'owner4@cuts.ae', '+971501234570', '$2b$10$wZQ/Jo1u0PxUxmhtpJNCf.0f57x.c.QI3.KLo9pLvCUs9E6qrm7ty', 'Layla', 'Mohammed', 'restaurant_owner', NOW(), NOW()),
+('55555555-5555-5555-5555-555555555555', 'owner5@cuts.ae', '+971501234571', '$2b$10$wZQ/Jo1u0PxUxmhtpJNCf.0f57x.c.QI3.KLo9pLvCUs9E6qrm7ty', 'Omar', 'Rashid', 'restaurant_owner', NOW(), NOW())
 ON CONFLICT (id) DO NOTHING;
 
 -- Additional restaurants with modern slugs

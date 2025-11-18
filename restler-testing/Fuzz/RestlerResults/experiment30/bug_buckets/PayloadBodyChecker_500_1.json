@@ -1,0 +1,16 @@
+{
+    "status_code": "500",
+    "checker_name": "PayloadBodyChecker",
+    "reproducible": true,
+    "verb": "POST",
+    "endpoint": null,
+    "status_text": "Internal Server Error",
+    "request_sequence": [
+        {
+            "producer_timing_delay": 0,
+            "max_async_wait_time": 0,
+            "replay_request": "POST /api/v1/auth/login HTTP/1.1\r\nAccept: application/json\r\nHost: host.docker.internal:45000\r\nContent-Type: application/json\r\n\r\nfalse",
+            "response": "HTTP/1.1 500 Internal Server Error\r\nX-Powered-By: Express\r\nVary: Origin\r\nAccess-Control-Allow-Credentials: true\r\nContent-Type: application/json; charset=utf-8\r\nContent-Length: 95\r\nETag: W/\"5f-dTJUb3UnBPFmAlImoggQe+Ey3QU\"\r\nDate: Tue, 18 Nov 2025 00:56:04 GMT\r\nConnection: keep-alive\r\nKeep-Alive: timeout=5\r\n\r\n{\"error\":\"Internal server error\",\"message\":\"Unexpected token 'f', \\\"false\\\" is not valid JSON\"}"
+        }
+    ]
+}

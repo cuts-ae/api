@@ -38,7 +38,7 @@ describe('Order Endpoints', () => {
     const ownerResponse = await request(app)
       .post('/api/v1/auth/register')
       .send({
-        email: `order-owner-${Date.now()}@example.com`,
+        email: `order-owner-${Date.now()}@cuts.ae`,
         password: 'OwnerPassword123!',
         first_name: 'Order',
         last_name: 'Owner',
@@ -53,7 +53,7 @@ describe('Order Endpoints', () => {
     const customerResponse = await request(app)
       .post('/api/v1/auth/register')
       .send({
-        email: `order-customer-${Date.now()}@example.com`,
+        email: `order-customer-${Date.now()}@cuts.ae`,
         password: 'CustomerPassword123!',
         first_name: 'Order',
         last_name: 'Customer',
@@ -576,7 +576,7 @@ describe('Order Endpoints', () => {
       const otherCustomer = await request(app)
         .post('/api/v1/auth/register')
         .send({
-          email: `other-customer-${Date.now()}@example.com`,
+          email: `other-customer-${Date.now()}@cuts.ae`,
           password: 'OtherPassword123!',
           first_name: 'Other',
           last_name: 'Customer',

@@ -58,7 +58,7 @@ describe('Authentication API', () => {
       const response = await request(app)
         .post('/api/v1/auth/register')
         .send({
-          email: 'test@test.com'
+          email: 'test@cuts.ae'
           // Missing required fields
         })
         .expect(400);

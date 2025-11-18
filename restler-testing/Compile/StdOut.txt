@@ -1,0 +1,313 @@
+[11/18/2025 00:55:48] Generating grammar...
+[11/18/2025 00:55:48] Getting requests...
+[11/18/2025 00:55:48] Getting dependencies...
+[11/18/2025 00:55:48] Getting path consumers...
+[11/18/2025 00:55:48] Getting query consumers...
+[11/18/2025 00:55:48] Getting header consumers...
+[11/18/2025 00:55:48] Getting body consumers...
+found unsupported format: email
+[11/18/2025 00:55:48] Getting producers...
+[11/18/2025 00:55:48] Done processing producers
+[11/18/2025 00:55:48] Compute dependencies
+found unsupported format: email
+[11/18/2025 00:55:48] Second pass dependencies for request { endpoint = "/admin/drivers"
+  xMsPath = None
+  method = Get }
+[11/18/2025 00:55:48] Done dependencies for request { endpoint = "/admin/drivers"
+  xMsPath = None
+  method = Get }
+[11/18/2025 00:55:48] Second pass dependencies for request { endpoint = "/admin/drivers/{id}/approve"
+  xMsPath = None
+  method = Post }
+[11/18/2025 00:55:48] Done dependencies for request { endpoint = "/admin/drivers/{id}/approve"
+  xMsPath = None
+  method = Post }
+[11/18/2025 00:55:48] Second pass dependencies for request { endpoint = "/admin/invoices"
+  xMsPath = None
+  method = Get }
+[11/18/2025 00:55:48] Done dependencies for request { endpoint = "/admin/invoices"
+  xMsPath = None
+  method = Get }
+[11/18/2025 00:55:48] Second pass dependencies for request { endpoint = "/admin/invoices/{id}"
+  xMsPath = None
+  method = Get }
+[11/18/2025 00:55:48] Done dependencies for request { endpoint = "/admin/invoices/{id}"
+  xMsPath = None
+  method = Get }
+[11/18/2025 00:55:48] Second pass dependencies for request { endpoint = "/admin/invoices/generate"
+  xMsPath = None
+  method = Post }
+[11/18/2025 00:55:48] Second pass dependencies for request { endpoint = "/auth/login"
+  xMsPath = None
+  method = Post }[11/18/2025 00:55:48] Second pass dependencies for request { endpoint = "/admin/drivers"
+  xMsPath = None
+  method = Get }[11/18/2025 00:55:48] Second pass dependencies for request { endpoint = "/admin/drivers"
+  xMsPath = None
+  method = Get }
+
+
+[11/18/2025 00:55:48] Done dependencies for request { endpoint = "/admin/invoices/generate"
+  xMsPath = None
+  method = Post }
+[11/18/2025 00:55:48] Second pass dependencies for request { endpoint = "/auth/login"
+  xMsPath = None
+  method = Post }
+[11/18/2025 00:55:48] Second pass dependencies for request { endpoint = "/admin/invoices/generate"
+  xMsPath = None
+  method = Post }
+[11/18/2025 00:55:48] Done dependencies for request { endpoint = "/admin/drivers"
+  xMsPath = None
+  method = Get }
+[11/18/2025 00:55:48] Second pass dependencies for request { endpoint = "/admin/users"
+  xMsPath = None
+  method = Get }
+[11/18/2025 00:55:48] Done dependencies for request { endpoint = "/admin/drivers"
+  xMsPath = None
+  method = Get }
+[11/18/2025 00:55:48] Done dependencies for request { endpoint = "/auth/login"
+  xMsPath = None
+  method = Post }
+[11/18/2025 00:55:48] Done dependencies for request { endpoint = "/admin/users"
+  xMsPath = None
+  method = Get }
+[11/18/2025 00:55:48] Second pass dependencies for request { endpoint = "/admin/drivers/{id}/approve"
+  xMsPath = None
+  method = Post }
+[11/18/2025 00:55:48] Second pass dependencies for request { endpoint = "/auth/login"
+  xMsPath = None
+  method = Post }
+[11/18/2025 00:55:48] Second pass dependencies for request { endpoint = "/admin/invoices/generate"
+  xMsPath = None
+  method = Post }
+[11/18/2025 00:55:48] Second pass dependencies for request { endpoint = "/admin/invoices/generate"
+  xMsPath = None
+  method = Post }
+[11/18/2025 00:55:48] Second pass dependencies for request { endpoint = "/admin/analytics"
+  xMsPath = None
+  method = Get }
+[11/18/2025 00:55:48] Done dependencies for request { endpoint = "/admin/invoices/generate"
+  xMsPath = None
+  method = Post }
+[11/18/2025 00:55:48] Second pass dependencies for request { endpoint = "/admin/orders"
+  xMsPath = None
+  method = Get }
+[11/18/2025 00:55:48] Second pass dependencies for request { endpoint = "/admin/users"
+  xMsPath = None
+  method = Get }
+[[11/18/2025 00:55:48] Done dependencies for request { endpoint = "/admin/users"
+  xMsPath = None
+  method = Get }
+11/18/2025 00:55:48] Done dependencies for request { endpoint = "/auth/login"
+  xMsPath = None
+  method = Post }
+[11/18/2025 00:55:48] Done dependencies for request { endpoint = "/admin/orders"
+  xMsPath = None
+  method = Get }[11/18/2025 00:55:48] Second pass dependencies for request { endpoint = "/admin/drivers"
+  xMsPath = None
+  method = Get }
+
+[11/18/2025 00:55:48] Second pass dependencies for request { endpoint = "/admin/orders"
+  xMsPath = None
+  method = Get }
+[11/18/2025 00:55:48] Done dependencies for request { endpoint = "/admin/drivers"
+  xMsPath = None
+  method = Get }
+[11/18/2025 00:55:48] Done dependencies for request { endpoint = "/admin/analytics"
+  xMsPath = None
+  method = Get }
+[11/18/2025 00:55:48] Done dependencies for request { endpoint = "/admin/drivers/{id}/approve"
+  xMsPath = None
+  method = Post }
+[11/18/2025 00:55:48] Second pass dependencies for request { endpoint = "/admin/drivers/{id}/approve"
+  xMsPath = None
+  method = Post }
+[11/18/2025 00:55:48] Done dependencies for request { endpoint = "/admin/drivers/{id}/approve"
+  xMsPath = None
+  method = Post }
+[11/18/2025 00:55:48] Second pass dependencies for request { endpoint = "/admin/invoices"
+  xMsPath = None
+  method = Get }
+[11/18/2025 00:55:48] Done dependencies for request { endpoint = "/admin/orders"
+  xMsPath = None
+  method = Get }
+[11/18/2025 00:55:48] Done dependencies for request { endpoint = "/admin/invoices"
+  xMsPath = None
+  method = Get }
+[11/18/2025 00:55:48] Second pass dependencies for request { endpoint = "/admin/invoices"
+  xMsPath = None
+  method = Get }
+[11/18/2025 00:55:48] Second pass dependencies for request { endpoint = "/admin/restaurants"
+  xMsPath = None
+  method = Get }
+[11/18/2025 00:55:48] Second pass dependencies for request { endpoint = "/orders"
+  xMsPath = None
+  method = Get }
+[11/18/2025 00:55:48] Second pass dependencies for request { endpoint = "/admin/analytics"
+  xMsPath = None
+  method = Get }
+[11/18/2025 00:55:48] Done dependencies for request { endpoint = "/admin/invoices"
+  xMsPath = None
+  method = Get }
+[11/18/2025 00:55:48] Second pass dependencies for request { endpoint = "/admin/invoices/{id}"
+  xMsPath = None
+  method = Get }
+[11/18/2025 00:55:48] Second pass dependencies for request { endpoint = "/orders"
+  xMsPath = None
+  method = Get }
+[11/18/2025 00:55:48] Done dependencies for request { endpoint = "/admin/restaurants"
+  xMsPath = None
+  method = Get }
+[11/18/2025 00:55:48] Done dependencies for request { endpoint = "/orders"
+  xMsPath = None
+  method = Get }
+[11/18/2025 00:55:48] Done dependencies for request { endpoint = "/admin/invoices/{id}"
+  xMsPath = None
+  method = Get }
+[11/18/2025 00:55:48] Done dependencies for request { endpoint = "/admin/analytics"
+  xMsPath = None
+  method = Get }
+[11/18/2025 00:55:48] Done dependencies for request { endpoint = "/auth/login"
+  xMsPath = None
+  method = Post }
+[11/18/2025 00:55:48] Second pass dependencies for request { endpoint = "/admin/restaurants/{id}/approve"
+  xMsPath = None
+  method = Post }[11/18/2025 00:55:48] Second pass dependencies for request { endpoint = "/admin/users"
+  xMsPath = None
+  method = Get }
+
+[11/18/2025 00:55:48] Done dependencies for request { endpoint = "/orders"
+  xMsPath = None
+  method = Get }
+[11/18/2025 00:55:48] Done dependencies for request { endpoint = "/admin/invoices/generate"
+  xMsPath = None
+  method = Post }
+[11/18/2025 00:55:48] Done dependencies for request { endpoint = "/admin/invoices/generate"
+  xMsPath = None
+  method = Post }[11/18/2025 00:55:48] Done dependencies for request { endpoint = "/admin/restaurants/{id}/approve"
+  xMsPath = None
+  method = Post }
+[11/18/2025 00:55:48] Second pass dependencies for request { endpoint = "/admin/analytics"
+  xMsPath = None
+  method = Get }
+[11/18/2025 00:55:48] Second pass dependencies for request { endpoint = "/admin/analytics"
+  xMsPath = None
+  method = Get }
+[11/18/2025 00:55:48] Second pass dependencies for request { endpoint = "/admin/restaurants"
+  xMsPath = None
+  method = Get }
+[11/18/2025 00:55:48] Done dependencies for request { endpoint = "/admin/analytics"
+  xMsPath = None
+  method = Get }
+[11/18/2025 00:55:48] Second pass dependencies for request { endpoint = "/admin/users"
+  xMsPath = None
+  method = Get }[11/18/2025 00:55:48] Done dependencies for request { endpoint = "/admin/users"
+  xMsPath = None
+  method = Get }
+
+[11/18/2025 00:55:48] Second pass dependencies for request { endpoint = "/admin/restaurants"
+  xMsPath = None
+  method = Get }
+[11/18/2025 00:55:48] Done dependencies for request { endpoint = "/admin/analytics"
+  xMsPath = None
+  method = Get }
+[11/18/2025 00:55:48] Done dependencies for request { endpoint = "/admin/restaurants"
+  xMsPath = None
+  method = Get }
+
+[11/18/2025 00:55:48] Second pass dependencies for request { endpoint = "/admin/invoices/{id}"
+  xMsPath = None
+  method = Get }
+[11/18/2025 00:55:48] Done dependencies for request { endpoint = "/admin/invoices/{id}"
+  xMsPath = None
+  method = Get }
+[11/18/2025 00:55:48] Second pass dependencies for request { endpoint = "/admin/restaurants"
+  xMsPath = None
+  method = Get }
+[11/18/2025 00:55:48] Done dependencies for request { endpoint = "/admin/users"
+  xMsPath = None
+  method = Get }
+[11/18/2025 00:55:48] Second pass dependencies for request { endpoint = "/admin/restaurants/{id}/approve"
+  xMsPath = None
+  method = Post }
+[11/18/2025 00:55:48] Second pass dependencies for request { endpoint = "/admin/restaurants/{id}/approve"
+  xMsPath = None
+  method = Post }
+[11/18/2025 00:55:48] Done dependencies for request { endpoint = "/admin/restaurants/{id}/approve"
+  xMsPath = None
+  method = Post }
+[11/18/2025 00:55:48] Done dependencies for request { endpoint = "/admin/restaurants/{id}/approve"
+  xMsPath = None
+  method = Post }
+[11/18/2025 00:55:48] Second pass dependencies for request { endpoint = "/admin/orders"
+  xMsPath = None
+  method = Get }
+[11/18/2025 00:55:48] Done dependencies for request { endpoint = "/admin/restaurants"
+  xMsPath = None
+  method = Get }
+[11/18/2025 00:55:48] Done dependencies for request { endpoint = "/admin/restaurants"
+  xMsPath = None
+  method = Get }
+[11/18/2025 00:55:48] Second pass dependencies for request { endpoint = "/admin/orders"
+  xMsPath = None
+  method = Get }
+[11/18/2025 00:55:48] Done dependencies for request { endpoint = "/admin/orders"
+  xMsPath = None
+  method = Get }
+[11/18/2025 00:55:48] Done dependencies for request { endpoint = "/admin/orders"
+  xMsPath = None
+  method = Get }
+[11/18/2025 00:55:48] Second pass dependencies for request { endpoint = "/orders"
+  xMsPath = None
+  method = Get }
+[11/18/2025 00:55:48] Done dependencies for request { endpoint = "/orders"
+  xMsPath = None
+  method = Get }
+[11/18/2025 00:55:48] Second pass dependencies for request { endpoint = "/auth/login"
+  xMsPath = None
+  method = Post }
+[11/18/2025 00:55:48] Done dependencies for request { endpoint = "/auth/login"
+  xMsPath = None
+  method = Post }
+[11/18/2025 00:55:48] Second pass dependencies for request { endpoint = "/orders"
+  xMsPath = None
+  method = Get }
+[11/18/2025 00:55:48] Done dependencies for request { endpoint = "/orders"
+  xMsPath = None
+  method = Get }
+[11/18/2025 00:55:48] Second pass dependencies for request { endpoint = "/admin/drivers/{id}/approve"
+  xMsPath = None
+  method = Post }
+[11/18/2025 00:55:48] Second pass dependencies for request { endpoint = "/admin/restaurants/{id}/approve"
+  xMsPath = None
+  method = Post }
+[11/18/2025 00:55:48] Second pass dependencies for request { endpoint = "/admin/invoices/{id}"
+  xMsPath = None
+  method = Get }
+[11/18/2025 00:55:48] Done dependencies for request { endpoint = "/admin/drivers/{id}/approve"
+  xMsPath = None
+  method = Post }
+[11/18/2025 00:55:48] Done dependencies for request { endpoint = "/admin/restaurants/{id}/approve"
+  xMsPath = None
+  method = Post }
+[11/18/2025 00:55:48] Done dependencies for request { endpoint = "/admin/invoices/{id}"
+  xMsPath = None
+  method = Get }
+[11/18/2025 00:55:48] Second pass dependencies for request { endpoint = "/admin/invoices"
+  xMsPath = None
+  method = Get }
+[11/18/2025 00:55:48] Done dependencies for request { endpoint = "/admin/invoices"
+  xMsPath = None
+  method = Get }
+[11/18/2025 00:55:48] Assigning equality constraints...
+found unsupported format: email
+[11/18/2025 00:55:48] Getting ordering constraints...
+[11/18/2025 00:55:48] Dependency analysis completed.
+[11/18/2025 00:55:48] Generating request primitives...
+found unsupported format: email
+found unsupported format: email
+Writing new dictionary to /work/Compile/dict.json
+[11/18/2025 00:55:48] Generating python grammar...
+[11/18/2025 00:55:48] Get requests
+[11/18/2025 00:55:48] Done get requests
+[11/18/2025 00:55:48] Done generating python grammar.
+Workflow completed.  See /work/Compile for REST-ler grammar.

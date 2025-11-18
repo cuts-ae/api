@@ -16,7 +16,7 @@ const createTestApp = (): Application => {
 
 describe('Authentication Endpoints', () => {
   let app: Application;
-  const testEmail = `test-${Date.now()}@example.com`;
+  const testEmail = `test-${Date.now()}@cuts.ae`;
   let authToken: string;
   let userId: string;
 
@@ -59,7 +59,7 @@ describe('Authentication Endpoints', () => {
     });
 
     it('should successfully register a restaurant owner', async () => {
-      const ownerEmail = `owner-${Date.now()}@example.com`;
+      const ownerEmail = `owner-${Date.now()}@cuts.ae`;
       const response = await request(app)
         .post('/api/v1/auth/register')
         .send({
@@ -115,7 +115,7 @@ describe('Authentication Endpoints', () => {
       const response = await request(app)
         .post('/api/v1/auth/register')
         .send({
-          email: `weak-${Date.now()}@example.com`,
+          email: `weak-${Date.now()}@cuts.ae`,
           password: '123', // Too short
           first_name: 'Test',
           last_name: 'User',
@@ -131,7 +131,7 @@ describe('Authentication Endpoints', () => {
       const response = await request(app)
         .post('/api/v1/auth/register')
         .send({
-          email: `missing-${Date.now()}@example.com`,
+          email: `missing-${Date.now()}@cuts.ae`,
           password: 'TestPassword123!'
           // Missing first_name, last_name, phone, role
         })
@@ -144,7 +144,7 @@ describe('Authentication Endpoints', () => {
       const response = await request(app)
         .post('/api/v1/auth/register')
         .send({
-          email: `phone-${Date.now()}@example.com`,
+          email: `phone-${Date.now()}@cuts.ae`,
           password: 'TestPassword123!',
           first_name: 'Test',
           last_name: 'User',
@@ -160,7 +160,7 @@ describe('Authentication Endpoints', () => {
       const response = await request(app)
         .post('/api/v1/auth/register')
         .send({
-          email: `role-${Date.now()}@example.com`,
+          email: `role-${Date.now()}@cuts.ae`,
           password: 'TestPassword123!',
           first_name: 'Test',
           last_name: 'User',
@@ -193,7 +193,7 @@ describe('Authentication Endpoints', () => {
       const response = await request(app)
         .post('/api/v1/auth/login')
         .send({
-          email: 'nonexistent@example.com',
+          email: 'nonexistent@cuts.ae',
           password: 'TestPassword123!'
         })
         .expect(401);
@@ -329,7 +329,7 @@ describe('Authentication Endpoints', () => {
       const registerResponse = await request(app)
         .post('/api/v1/auth/register')
         .send({
-          email: `security-${Date.now()}@example.com`,
+          email: `security-${Date.now()}@cuts.ae`,
           password: 'TestPassword123!',
           first_name: 'Security',
           last_name: 'Test',

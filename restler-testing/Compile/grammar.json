@@ -1,0 +1,1088 @@
+{
+  "Requests": [
+    {
+      "id": {
+        "endpoint": "/auth/login",
+        "method": "Post"
+      },
+      "method": "Post",
+      "basePath": "/api/v1",
+      "path": [
+        {
+          "Constant": [
+            "String",
+            "/"
+          ]
+        },
+        {
+          "Constant": [
+            "String",
+            "auth"
+          ]
+        },
+        {
+          "Constant": [
+            "String",
+            "/"
+          ]
+        },
+        {
+          "Constant": [
+            "String",
+            "login"
+          ]
+        }
+      ],
+      "queryParameters": [
+        [
+          "Schema",
+          {
+            "ParameterList": []
+          }
+        ]
+      ],
+      "bodyParameters": [
+        [
+          "Schema",
+          {
+            "ParameterList": [
+              {
+                "name": "__body__",
+                "payload": {
+                  "InternalNode": [
+                    {
+                      "name": "",
+                      "propertyType": "Object",
+                      "isRequired": true,
+                      "isReadOnly": false
+                    },
+                    [
+                      {
+                        "LeafNode": {
+                          "name": "email",
+                          "payload": {
+                            "Fuzzable": {
+                              "primitiveType": "String",
+                              "defaultValue": "fuzzstring"
+                            }
+                          },
+                          "isRequired": true,
+                          "isReadOnly": false
+                        }
+                      },
+                      {
+                        "LeafNode": {
+                          "name": "password",
+                          "payload": {
+                            "Fuzzable": {
+                              "primitiveType": "String",
+                              "defaultValue": "fuzzstring"
+                            }
+                          },
+                          "isRequired": true,
+                          "isReadOnly": false
+                        }
+                      }
+                    ]
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      ],
+      "headerParameters": [
+        [
+          "Schema",
+          {
+            "ParameterList": []
+          }
+        ],
+        [
+          "DictionaryCustomPayload",
+          {
+            "ParameterList": [
+              {
+                "name": "Content-Type",
+                "payload": {
+                  "LeafNode": {
+                    "name": "",
+                    "payload": {
+                      "Constant": [
+                        "String",
+                        "application/json"
+                      ]
+                    },
+                    "isRequired": true,
+                    "isReadOnly": false
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      ],
+      "token": "Refreshable",
+      "headers": [
+        [
+          "Accept",
+          "application/json"
+        ],
+        [
+          "Host",
+          "host.docker.internal:45000"
+        ]
+      ],
+      "httpVersion": "1.1",
+      "requestMetadata": {
+        "isLongRunningOperation": false
+      }
+    },
+    {
+      "id": {
+        "endpoint": "/admin/analytics",
+        "method": "Get"
+      },
+      "method": "Get",
+      "basePath": "/api/v1",
+      "path": [
+        {
+          "Constant": [
+            "String",
+            "/"
+          ]
+        },
+        {
+          "Constant": [
+            "String",
+            "admin"
+          ]
+        },
+        {
+          "Constant": [
+            "String",
+            "/"
+          ]
+        },
+        {
+          "Constant": [
+            "String",
+            "analytics"
+          ]
+        }
+      ],
+      "queryParameters": [
+        [
+          "Schema",
+          {
+            "ParameterList": []
+          }
+        ]
+      ],
+      "bodyParameters": [
+        [
+          "Schema",
+          {
+            "ParameterList": []
+          }
+        ]
+      ],
+      "headerParameters": [
+        [
+          "Schema",
+          {
+            "ParameterList": []
+          }
+        ],
+        [
+          "DictionaryCustomPayload",
+          {
+            "ParameterList": []
+          }
+        ]
+      ],
+      "token": "Refreshable",
+      "headers": [
+        [
+          "Accept",
+          "application/json"
+        ],
+        [
+          "Host",
+          "host.docker.internal:45000"
+        ]
+      ],
+      "httpVersion": "1.1",
+      "requestMetadata": {
+        "isLongRunningOperation": false
+      }
+    },
+    {
+      "id": {
+        "endpoint": "/admin/restaurants",
+        "method": "Get"
+      },
+      "method": "Get",
+      "basePath": "/api/v1",
+      "path": [
+        {
+          "Constant": [
+            "String",
+            "/"
+          ]
+        },
+        {
+          "Constant": [
+            "String",
+            "admin"
+          ]
+        },
+        {
+          "Constant": [
+            "String",
+            "/"
+          ]
+        },
+        {
+          "Constant": [
+            "String",
+            "restaurants"
+          ]
+        }
+      ],
+      "queryParameters": [
+        [
+          "Schema",
+          {
+            "ParameterList": []
+          }
+        ]
+      ],
+      "bodyParameters": [
+        [
+          "Schema",
+          {
+            "ParameterList": []
+          }
+        ]
+      ],
+      "headerParameters": [
+        [
+          "Schema",
+          {
+            "ParameterList": []
+          }
+        ],
+        [
+          "DictionaryCustomPayload",
+          {
+            "ParameterList": []
+          }
+        ]
+      ],
+      "token": "Refreshable",
+      "headers": [
+        [
+          "Accept",
+          "application/json"
+        ],
+        [
+          "Host",
+          "host.docker.internal:45000"
+        ]
+      ],
+      "httpVersion": "1.1",
+      "requestMetadata": {
+        "isLongRunningOperation": false
+      }
+    },
+    {
+      "id": {
+        "endpoint": "/admin/restaurants/{id}/approve",
+        "method": "Post"
+      },
+      "method": "Post",
+      "basePath": "/api/v1",
+      "path": [
+        {
+          "Constant": [
+            "String",
+            "/"
+          ]
+        },
+        {
+          "Constant": [
+            "String",
+            "admin"
+          ]
+        },
+        {
+          "Constant": [
+            "String",
+            "/"
+          ]
+        },
+        {
+          "Constant": [
+            "String",
+            "restaurants"
+          ]
+        },
+        {
+          "Constant": [
+            "String",
+            "/"
+          ]
+        },
+        {
+          "Fuzzable": {
+            "primitiveType": "Int",
+            "defaultValue": "1"
+          }
+        },
+        {
+          "Constant": [
+            "String",
+            "/"
+          ]
+        },
+        {
+          "Constant": [
+            "String",
+            "approve"
+          ]
+        }
+      ],
+      "queryParameters": [
+        [
+          "Schema",
+          {
+            "ParameterList": []
+          }
+        ]
+      ],
+      "bodyParameters": [
+        [
+          "Schema",
+          {
+            "ParameterList": []
+          }
+        ]
+      ],
+      "headerParameters": [
+        [
+          "Schema",
+          {
+            "ParameterList": []
+          }
+        ],
+        [
+          "DictionaryCustomPayload",
+          {
+            "ParameterList": []
+          }
+        ]
+      ],
+      "token": "Refreshable",
+      "headers": [
+        [
+          "Accept",
+          "application/json"
+        ],
+        [
+          "Host",
+          "host.docker.internal:45000"
+        ]
+      ],
+      "httpVersion": "1.1",
+      "requestMetadata": {
+        "isLongRunningOperation": false
+      }
+    },
+    {
+      "id": {
+        "endpoint": "/admin/drivers",
+        "method": "Get"
+      },
+      "method": "Get",
+      "basePath": "/api/v1",
+      "path": [
+        {
+          "Constant": [
+            "String",
+            "/"
+          ]
+        },
+        {
+          "Constant": [
+            "String",
+            "admin"
+          ]
+        },
+        {
+          "Constant": [
+            "String",
+            "/"
+          ]
+        },
+        {
+          "Constant": [
+            "String",
+            "drivers"
+          ]
+        }
+      ],
+      "queryParameters": [
+        [
+          "Schema",
+          {
+            "ParameterList": []
+          }
+        ]
+      ],
+      "bodyParameters": [
+        [
+          "Schema",
+          {
+            "ParameterList": []
+          }
+        ]
+      ],
+      "headerParameters": [
+        [
+          "Schema",
+          {
+            "ParameterList": []
+          }
+        ],
+        [
+          "DictionaryCustomPayload",
+          {
+            "ParameterList": []
+          }
+        ]
+      ],
+      "token": "Refreshable",
+      "headers": [
+        [
+          "Accept",
+          "application/json"
+        ],
+        [
+          "Host",
+          "host.docker.internal:45000"
+        ]
+      ],
+      "httpVersion": "1.1",
+      "requestMetadata": {
+        "isLongRunningOperation": false
+      }
+    },
+    {
+      "id": {
+        "endpoint": "/admin/drivers/{id}/approve",
+        "method": "Post"
+      },
+      "method": "Post",
+      "basePath": "/api/v1",
+      "path": [
+        {
+          "Constant": [
+            "String",
+            "/"
+          ]
+        },
+        {
+          "Constant": [
+            "String",
+            "admin"
+          ]
+        },
+        {
+          "Constant": [
+            "String",
+            "/"
+          ]
+        },
+        {
+          "Constant": [
+            "String",
+            "drivers"
+          ]
+        },
+        {
+          "Constant": [
+            "String",
+            "/"
+          ]
+        },
+        {
+          "Fuzzable": {
+            "primitiveType": "Int",
+            "defaultValue": "1"
+          }
+        },
+        {
+          "Constant": [
+            "String",
+            "/"
+          ]
+        },
+        {
+          "Constant": [
+            "String",
+            "approve"
+          ]
+        }
+      ],
+      "queryParameters": [
+        [
+          "Schema",
+          {
+            "ParameterList": []
+          }
+        ]
+      ],
+      "bodyParameters": [
+        [
+          "Schema",
+          {
+            "ParameterList": []
+          }
+        ]
+      ],
+      "headerParameters": [
+        [
+          "Schema",
+          {
+            "ParameterList": []
+          }
+        ],
+        [
+          "DictionaryCustomPayload",
+          {
+            "ParameterList": []
+          }
+        ]
+      ],
+      "token": "Refreshable",
+      "headers": [
+        [
+          "Accept",
+          "application/json"
+        ],
+        [
+          "Host",
+          "host.docker.internal:45000"
+        ]
+      ],
+      "httpVersion": "1.1",
+      "requestMetadata": {
+        "isLongRunningOperation": false
+      }
+    },
+    {
+      "id": {
+        "endpoint": "/admin/invoices",
+        "method": "Get"
+      },
+      "method": "Get",
+      "basePath": "/api/v1",
+      "path": [
+        {
+          "Constant": [
+            "String",
+            "/"
+          ]
+        },
+        {
+          "Constant": [
+            "String",
+            "admin"
+          ]
+        },
+        {
+          "Constant": [
+            "String",
+            "/"
+          ]
+        },
+        {
+          "Constant": [
+            "String",
+            "invoices"
+          ]
+        }
+      ],
+      "queryParameters": [
+        [
+          "Schema",
+          {
+            "ParameterList": []
+          }
+        ]
+      ],
+      "bodyParameters": [
+        [
+          "Schema",
+          {
+            "ParameterList": []
+          }
+        ]
+      ],
+      "headerParameters": [
+        [
+          "Schema",
+          {
+            "ParameterList": []
+          }
+        ],
+        [
+          "DictionaryCustomPayload",
+          {
+            "ParameterList": []
+          }
+        ]
+      ],
+      "token": "Refreshable",
+      "headers": [
+        [
+          "Accept",
+          "application/json"
+        ],
+        [
+          "Host",
+          "host.docker.internal:45000"
+        ]
+      ],
+      "httpVersion": "1.1",
+      "requestMetadata": {
+        "isLongRunningOperation": false
+      }
+    },
+    {
+      "id": {
+        "endpoint": "/admin/invoices/{id}",
+        "method": "Get"
+      },
+      "method": "Get",
+      "basePath": "/api/v1",
+      "path": [
+        {
+          "Constant": [
+            "String",
+            "/"
+          ]
+        },
+        {
+          "Constant": [
+            "String",
+            "admin"
+          ]
+        },
+        {
+          "Constant": [
+            "String",
+            "/"
+          ]
+        },
+        {
+          "Constant": [
+            "String",
+            "invoices"
+          ]
+        },
+        {
+          "Constant": [
+            "String",
+            "/"
+          ]
+        },
+        {
+          "Fuzzable": {
+            "primitiveType": "Int",
+            "defaultValue": "1"
+          }
+        }
+      ],
+      "queryParameters": [
+        [
+          "Schema",
+          {
+            "ParameterList": []
+          }
+        ]
+      ],
+      "bodyParameters": [
+        [
+          "Schema",
+          {
+            "ParameterList": []
+          }
+        ]
+      ],
+      "headerParameters": [
+        [
+          "Schema",
+          {
+            "ParameterList": []
+          }
+        ],
+        [
+          "DictionaryCustomPayload",
+          {
+            "ParameterList": []
+          }
+        ]
+      ],
+      "token": "Refreshable",
+      "headers": [
+        [
+          "Accept",
+          "application/json"
+        ],
+        [
+          "Host",
+          "host.docker.internal:45000"
+        ]
+      ],
+      "httpVersion": "1.1",
+      "requestMetadata": {
+        "isLongRunningOperation": false
+      }
+    },
+    {
+      "id": {
+        "endpoint": "/admin/invoices/generate",
+        "method": "Post"
+      },
+      "method": "Post",
+      "basePath": "/api/v1",
+      "path": [
+        {
+          "Constant": [
+            "String",
+            "/"
+          ]
+        },
+        {
+          "Constant": [
+            "String",
+            "admin"
+          ]
+        },
+        {
+          "Constant": [
+            "String",
+            "/"
+          ]
+        },
+        {
+          "Constant": [
+            "String",
+            "invoices"
+          ]
+        },
+        {
+          "Constant": [
+            "String",
+            "/"
+          ]
+        },
+        {
+          "Constant": [
+            "String",
+            "generate"
+          ]
+        }
+      ],
+      "queryParameters": [
+        [
+          "Schema",
+          {
+            "ParameterList": []
+          }
+        ]
+      ],
+      "bodyParameters": [
+        [
+          "Schema",
+          {
+            "ParameterList": []
+          }
+        ]
+      ],
+      "headerParameters": [
+        [
+          "Schema",
+          {
+            "ParameterList": []
+          }
+        ],
+        [
+          "DictionaryCustomPayload",
+          {
+            "ParameterList": []
+          }
+        ]
+      ],
+      "token": "Refreshable",
+      "headers": [
+        [
+          "Accept",
+          "application/json"
+        ],
+        [
+          "Host",
+          "host.docker.internal:45000"
+        ]
+      ],
+      "httpVersion": "1.1",
+      "requestMetadata": {
+        "isLongRunningOperation": false
+      }
+    },
+    {
+      "id": {
+        "endpoint": "/admin/users",
+        "method": "Get"
+      },
+      "method": "Get",
+      "basePath": "/api/v1",
+      "path": [
+        {
+          "Constant": [
+            "String",
+            "/"
+          ]
+        },
+        {
+          "Constant": [
+            "String",
+            "admin"
+          ]
+        },
+        {
+          "Constant": [
+            "String",
+            "/"
+          ]
+        },
+        {
+          "Constant": [
+            "String",
+            "users"
+          ]
+        }
+      ],
+      "queryParameters": [
+        [
+          "Schema",
+          {
+            "ParameterList": []
+          }
+        ]
+      ],
+      "bodyParameters": [
+        [
+          "Schema",
+          {
+            "ParameterList": []
+          }
+        ]
+      ],
+      "headerParameters": [
+        [
+          "Schema",
+          {
+            "ParameterList": []
+          }
+        ],
+        [
+          "DictionaryCustomPayload",
+          {
+            "ParameterList": []
+          }
+        ]
+      ],
+      "token": "Refreshable",
+      "headers": [
+        [
+          "Accept",
+          "application/json"
+        ],
+        [
+          "Host",
+          "host.docker.internal:45000"
+        ]
+      ],
+      "httpVersion": "1.1",
+      "requestMetadata": {
+        "isLongRunningOperation": false
+      }
+    },
+    {
+      "id": {
+        "endpoint": "/admin/orders",
+        "method": "Get"
+      },
+      "method": "Get",
+      "basePath": "/api/v1",
+      "path": [
+        {
+          "Constant": [
+            "String",
+            "/"
+          ]
+        },
+        {
+          "Constant": [
+            "String",
+            "admin"
+          ]
+        },
+        {
+          "Constant": [
+            "String",
+            "/"
+          ]
+        },
+        {
+          "Constant": [
+            "String",
+            "orders"
+          ]
+        }
+      ],
+      "queryParameters": [
+        [
+          "Schema",
+          {
+            "ParameterList": []
+          }
+        ]
+      ],
+      "bodyParameters": [
+        [
+          "Schema",
+          {
+            "ParameterList": []
+          }
+        ]
+      ],
+      "headerParameters": [
+        [
+          "Schema",
+          {
+            "ParameterList": []
+          }
+        ],
+        [
+          "DictionaryCustomPayload",
+          {
+            "ParameterList": []
+          }
+        ]
+      ],
+      "token": "Refreshable",
+      "headers": [
+        [
+          "Accept",
+          "application/json"
+        ],
+        [
+          "Host",
+          "host.docker.internal:45000"
+        ]
+      ],
+      "httpVersion": "1.1",
+      "requestMetadata": {
+        "isLongRunningOperation": false
+      }
+    },
+    {
+      "id": {
+        "endpoint": "/orders",
+        "method": "Get"
+      },
+      "method": "Get",
+      "basePath": "/api/v1",
+      "path": [
+        {
+          "Constant": [
+            "String",
+            "/"
+          ]
+        },
+        {
+          "Constant": [
+            "String",
+            "orders"
+          ]
+        }
+      ],
+      "queryParameters": [
+        [
+          "Schema",
+          {
+            "ParameterList": [
+              {
+                "name": "restaurant_id",
+                "payload": {
+                  "LeafNode": {
+                    "name": "",
+                    "payload": {
+                      "Fuzzable": {
+                        "primitiveType": "String",
+                        "defaultValue": "fuzzstring"
+                      }
+                    },
+                    "isRequired": false,
+                    "isReadOnly": false
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      ],
+      "bodyParameters": [
+        [
+          "Schema",
+          {
+            "ParameterList": []
+          }
+        ]
+      ],
+      "headerParameters": [
+        [
+          "Schema",
+          {
+            "ParameterList": []
+          }
+        ],
+        [
+          "DictionaryCustomPayload",
+          {
+            "ParameterList": []
+          }
+        ]
+      ],
+      "token": "Refreshable",
+      "headers": [
+        [
+          "Accept",
+          "application/json"
+        ],
+        [
+          "Host",
+          "host.docker.internal:45000"
+        ]
+      ],
+      "httpVersion": "1.1",
+      "requestMetadata": {
+        "isLongRunningOperation": false
+      }
+    }
+  ]
+}

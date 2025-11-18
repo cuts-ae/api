@@ -1,0 +1,68 @@
+{
+  "/admin/drivers/{id}/approve": {
+    "POST": {
+      "Path": [
+        {
+          "producer_endpoint": "",
+          "producer_method": "",
+          "producer_resource_name": "",
+          "consumer_param": "id"
+        }
+      ]
+    }
+  },
+  "/admin/invoices/{id}": {
+    "GET": {
+      "Path": [
+        {
+          "producer_endpoint": "",
+          "producer_method": "",
+          "producer_resource_name": "",
+          "consumer_param": "id"
+        }
+      ]
+    }
+  },
+  "/admin/restaurants/{id}/approve": {
+    "POST": {
+      "Path": [
+        {
+          "producer_endpoint": "",
+          "producer_method": "",
+          "producer_resource_name": "",
+          "consumer_param": "id"
+        }
+      ]
+    }
+  },
+  "/auth/login": {
+    "POST": {
+      "Body": [
+        {
+          "producer_endpoint": "",
+          "producer_method": "",
+          "producer_resource_name": "",
+          "consumer_param": "email"
+        },
+        {
+          "producer_endpoint": "",
+          "producer_method": "",
+          "producer_resource_name": "",
+          "consumer_param": "password"
+        }
+      ]
+    }
+  },
+  "/orders": {
+    "GET": {
+      "Query": [
+        {
+          "producer_endpoint": "",
+          "producer_method": "",
+          "producer_resource_name": "",
+          "consumer_param": "restaurant_id"
+        }
+      ]
+    }
+  }
+}

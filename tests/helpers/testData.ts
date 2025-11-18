@@ -2,7 +2,7 @@ import { UserRole, Gender, ActivityLevel, FitnessGoal, MealCategory } from '../.
 
 export const testUsers = {
   customer: {
-    email: 'customer@test.com',
+    email: 'customer@cuts.ae',
     password: 'Password123!',
     first_name: 'Test',
     last_name: 'Customer',
@@ -10,7 +10,7 @@ export const testUsers = {
     role: UserRole.CUSTOMER
   },
   restaurantOwner: {
-    email: 'owner@test.com',
+    email: 'owner@cuts.ae',
     password: 'Password123!',
     first_name: 'Restaurant',
     last_name: 'Owner',
@@ -18,7 +18,7 @@ export const testUsers = {
     role: UserRole.RESTAURANT_OWNER
   },
   admin: {
-    email: 'admin@test.com',
+    email: 'admin@cuts.ae',
     password: 'Password123!',
     first_name: 'Admin',
     last_name: 'User',
@@ -26,7 +26,7 @@ export const testUsers = {
     role: UserRole.ADMIN
   },
   driver: {
-    email: 'driver@test.com',
+    email: 'driver@cuts.ae',
     password: 'Password123!',
     first_name: 'Test',
     last_name: 'Driver',
@@ -47,7 +47,7 @@ export const testRestaurant = {
     postal_code: '00000'
   },
   phone: '+971501234571',
-  email: 'restaurant@test.com',
+  email: 'restaurant@cuts.ae',
   commission_rate: 15,
   is_active: true,
   operating_hours: {

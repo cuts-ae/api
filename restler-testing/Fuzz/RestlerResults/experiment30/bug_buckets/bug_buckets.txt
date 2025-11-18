@@ -1,0 +1,12 @@
+PayloadBodyChecker_500: 1
+InvalidValueChecker_500: 1
+Total Buckets: 2
+-------------
+PayloadBodyChecker_500 - Bug was reproduced - PayloadBodyChecker_500_1.replay.txt
+Hash: PayloadBodyChecker_500_7d897f0517e76e1bfe3ab4ba48fe321304f98ec6
+POST /api/v1/auth/login HTTP/1.1\r\nAccept: application/json\r\nHost: host.docker.internal:45000\r\nContent-Type: application/json\r\nauthentication_token_tag\r\nfalse
+--------------------------------------------------------------------------------
+InvalidValueChecker_500 - Bug was reproduced - InvalidValueChecker_500_1.replay.txt
+Hash: InvalidValueChecker_500_8e19a501b3c34d03b9ec9a7044115431d8be7075
+POST /api/v1/auth/login HTTP/1.1\r\nAccept: application/json\r\nHost: host.docker.internal:45000\r\nContent-Type: application/json\r\nauthentication_token_tag\r\n{\n    "email":fuzzstring,\n    "password":fuzzstring}\r\n
+--------------------------------------------------------------------------------

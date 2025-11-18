@@ -67,9 +67,9 @@ Auto-deploys on push to main.
 ## Demo Credentials
 
 ```
-Restaurant Owner: owner1@example.com / password123
-Customer: customer1@example.com / password123
-Admin: admin@example.com / password123
+Restaurant Owner: owner1@cuts.ae / password123
+Customer: customer1@cuts.ae / password123
+Admin: admin@cuts.ae / password123
 ```
 
 ## API Endpoints

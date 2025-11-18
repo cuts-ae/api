@@ -123,9 +123,24 @@ export class MenuController {
       throw new AppError('Forbidden', 403);
     }
 
-    // Build update query
-    const fields = Object.keys(req.body);
-    const values = Object.values(req.body);
+    // Whitelist of allowed update fields
+    const allowedFields = ['name', 'description', 'image_url', 'base_price', 'category', 'prep_time', 'is_available'];
+
+    // Filter to only allowed fields
+    const updates: any = {};
+    for (const field of allowedFields) {
+      if (req.body[field] !== undefined) {
+        updates[field] = req.body[field];
+      }
+    }
+
+    if (Object.keys(updates).length === 0) {
+      throw new AppError('No valid fields to update', 400);
+    }
+
+    // Build update query with whitelisted fields
+    const fields = Object.keys(updates);
+    const values = Object.values(updates);
     const setClause = fields.map((field, i) => `${field} = $${i + 2}`).join(', ');
 
     const result = await pool.query(
