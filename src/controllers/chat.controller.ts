@@ -7,6 +7,11 @@ export const createChatSession = async (req: Request, res: Response): Promise<vo
     const userId = (req as any).user?.userId;
     const data: CreateChatSessionRequest = req.body;
 
+    console.log('=== API RECEIVED CREATE CHAT SESSION REQUEST ===');
+    console.log('Request body:', JSON.stringify(req.body, null, 2));
+    console.log('restaurant_id received:', data.restaurant_id);
+    console.log('restaurant_id type:', typeof data.restaurant_id);
+
     if (!data.subject) {
       res.status(400).json({
         success: false,
