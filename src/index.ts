@@ -14,7 +14,8 @@ import { errorHandler } from "./middleware/errorHandler";
 import { ChatSocketServer } from "./socket/chat.socket";
 import { rbacMiddleware } from "./middleware/rbac";
 
-dotenv.config();
+// Load environment variables from root .env file
+dotenv.config({ path: path.resolve(__dirname, "../../.env") });
 
 const app = express();
 const httpServer = createServer(app);
