@@ -1,0 +1,124 @@
+name: API Tests
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master, develop ]
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [20.x]
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: cuts_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Create .env.test file
+      run: |
+        cat > .env.test << EOF
+        NODE_ENV=test
+        PORT=45000
+        DB_HOST=localhost
+        DB_PORT=5432
+        DB_NAME=cuts_test
+        DB_USER=postgres
+        DB_PASSWORD=postgres
+        JWT_SECRET=test-secret-key-for-ci-cd-pipeline-12345
+        UPLOAD_DIR=./uploads
+        EOF
+
+    - name: Run linter
+      run: npm run lint
+      continue-on-error: true
+
+    - name: Run unit tests
+      run: npm test -- --testPathIgnorePatterns=integration --coverage --maxWorkers=2
+
+    - name: Run integration tests
+      run: npm test -- --testPathPatterns=integration --coverage --maxWorkers=2
+      env:
+        NODE_ENV: test
+
+    - name: Generate coverage report
+      run: npm test -- --coverage --coverageReporters=json-summary --coverageReporters=text --maxWorkers=2
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v4
+      with:
+        files: ./coverage/coverage-final.json
+        flags: unittests
+        name: api-coverage
+        fail_ci_if_error: false
+      continue-on-error: true
+
+    - name: Test Report
+      uses: dorny/test-reporter@v1
+      if: always()
+      with:
+        name: Jest Tests
+        path: 'coverage/jest-results.json'
+        reporter: jest-junit
+        fail-on-error: false
+      continue-on-error: true
+
+    - name: Comment test results on PR
+      uses: actions/github-script@v7
+      if: github.event_name == 'pull_request' && always()
+      with:
+        script: |
+          const fs = require('fs');
+          let coverage = 'Coverage data not available';
+
+          try {
+            if (fs.existsSync('./coverage/coverage-summary.json')) {
+              const coverageData = JSON.parse(fs.readFileSync('./coverage/coverage-summary.json', 'utf8'));
+              const total = coverageData.total;
+              coverage = `
+              ## Test Coverage
+              - **Statements:** ${total.statements.pct}%
+              - **Branches:** ${total.branches.pct}%
+              - **Functions:** ${total.functions.pct}%
+              - **Lines:** ${total.lines.pct}%
+              `;
+            }
+          } catch (error) {
+            console.log('Could not read coverage data:', error);
+          }
+
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: `## Test Results\n\n${coverage}\n\nSee details in the Actions tab.`
+          });
+      continue-on-error: true

@@ -196,16 +196,38 @@ export class OrderController {
   }
 
   /**
-   * Get orders (role-based filtering)
+   * Get orders (role-based filtering) - OPTIMIZED
    */
   static async getOrders(req: AuthRequest, res: Response) {
     const { status, restaurant_id } = req.query;
 
+    const params: any[] = [];
+    let paramCount = 1;
+    let restaurantIds: string[] = [];
+
+    // Get restaurant IDs if user is restaurant owner (single query)
+    if (req.user!.role === UserRole.RESTAURANT_OWNER) {
+      const restaurantsResult = await pool.query(
+        'SELECT id FROM restaurants WHERE owner_id = $1',
+        [req.user!.userId]
+      );
+
+      restaurantIds = restaurantsResult.rows.map(r => r.id);
+
+      if (restaurantIds.length === 0) {
+        return res.json({ orders: [] });
+      }
+    }
+
+    // Optimized query with indexes
     let query = `
-      SELECT o.*,
+      SELECT o.id, o.order_number, o.status, o.total_amount, o.delivery_fee,
+             o.service_fee, o.created_at, o.updated_at, o.delivery_address,
              json_build_object(
                'first_name', u.first_name,
-               'last_name', u.last_name
+               'last_name', u.last_name,
+               'email', u.email,
+               'phone', u.phone
              ) as users,
              json_agg(json_build_object(
                'id', oi.id,
@@ -220,13 +242,11 @@ export class OrderController {
                )
              )) FILTER (WHERE oi.id IS NOT NULL) as order_items
       FROM orders o
-      LEFT JOIN users u ON o.customer_id = u.id
+      INNER JOIN users u ON o.customer_id = u.id
       LEFT JOIN order_items oi ON o.id = oi.order_id
       LEFT JOIN menu_items mi ON oi.menu_item_id = mi.id
       WHERE 1=1
     `;
-    const params: any[] = [];
-    let paramCount = 1;
 
     // Filter based on user role
     if (req.user!.role === UserRole.CUSTOMER) {
@@ -234,18 +254,6 @@ export class OrderController {
       params.push(req.user!.userId);
       paramCount++;
     } else if (req.user!.role === UserRole.RESTAURANT_OWNER) {
-      // Get owner's restaurants
-      const restaurantsResult = await pool.query(
-        'SELECT id FROM restaurants WHERE owner_id = $1',
-        [req.user!.userId]
-      );
-
-      const restaurantIds = restaurantsResult.rows.map(r => r.id);
-
-      if (restaurantIds.length === 0) {
-        return res.json({ orders: [] });
-      }
-
       query += ` AND o.restaurants && $${paramCount}`;
       params.push(restaurantIds);
       paramCount++;
@@ -263,6 +271,7 @@ export class OrderController {
       paramCount++;
     }
 
+    // Use index on created_at with DESC
     query += ` GROUP BY o.id, u.id ORDER BY o.created_at DESC LIMIT 100`;
 
     const result = await pool.query(query, params);

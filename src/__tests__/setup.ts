@@ -4,6 +4,11 @@ import dotenv from 'dotenv';
 // Load test environment variables
 dotenv.config({ path: '.env.test' });
 
+// Mock uuid module
+jest.mock('uuid', () => ({
+  v4: jest.fn(() => 'test-uuid-123')
+}));
+
 // Set test timeout
 jest.setTimeout(10000);
 

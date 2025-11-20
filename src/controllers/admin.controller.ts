@@ -177,49 +177,57 @@ export const getInvoiceDetails = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
 
-    // Mock implementation - return invoice details based on ID
     const invoiceResult = await pool.query(`
       SELECT
-        oi.restaurant_id,
-        r.name as restaurant_name,
-        DATE_TRUNC('month', o.created_at) as period_start,
-        DATE_TRUNC('month', o.created_at) + INTERVAL '1 month' as period_end,
-        SUM(oi.item_total) as amount,
-        'paid' as status,
-        MIN(o.created_at) as created_at,
-        json_agg(json_build_object(
-          'order_id', o.id,
-          'order_number', o.order_number,
-          'amount', oi.item_total,
-          'date', o.created_at
-        )) as orders
-      FROM order_items oi
-      JOIN orders o ON oi.order_id = o.id
-      JOIN restaurants r ON oi.restaurant_id = r.id
-      WHERE o.status = 'delivered'
-      GROUP BY oi.restaurant_id, r.name, DATE_TRUNC('month', o.created_at)
-      ORDER BY period_start DESC
-      LIMIT 1 OFFSET $1
-    `, [parseInt(id) - 1]);
+        i.id,
+        i.order_id,
+        i.invoice_number,
+        i.invoice_type,
+        i.amount,
+        i.status,
+        i.notes,
+        i.created_at,
+        o.order_number,
+        o.total_amount,
+        o.payment_status,
+        COALESCE(
+          (SELECT name FROM restaurants WHERE id = o.restaurants[1]),
+          'Multiple'
+        ) as restaurant_name,
+        CONCAT(u.first_name, ' ', u.last_name) as customer_name,
+        u.email as customer_email,
+        u.phone as customer_phone
+      FROM customer_invoices i
+      JOIN orders o ON i.order_id = o.id
+      JOIN users u ON o.customer_id = u.id
+      WHERE i.id = $1
+    `, [id]);
 
     if (invoiceResult.rows.length === 0) {
       return res.status(404).json({ success: false, error: "Invoice not found" });
     }
 
-    const invoice = invoiceResult.rows[0];
+    // Get order items for this invoice
+    const orderItemsResult = await pool.query(`
+      SELECT
+        oi.id,
+        oi.quantity,
+        oi.base_price,
+        oi.item_total,
+        oi.special_instructions,
+        mi.name as item_name,
+        mi.description as item_description
+      FROM order_items oi
+      LEFT JOIN menu_items mi ON oi.menu_item_id = mi.id
+      WHERE oi.order_id = $1
+      ORDER BY oi.created_at
+    `, [invoiceResult.rows[0].order_id]);
 
     res.json({
       success: true,
       data: {
-        id: parseInt(id),
-        restaurant_id: invoice.restaurant_id,
-        restaurant_name: invoice.restaurant_name,
-        amount: parseFloat(invoice.amount),
-        status: invoice.status,
-        period_start: invoice.period_start,
-        period_end: invoice.period_end,
-        created_at: invoice.created_at,
-        orders: invoice.orders
+        ...invoiceResult.rows[0],
+        items: orderItemsResult.rows,
       },
     });
   } catch (error) {
@@ -231,38 +239,31 @@ export const getInvoiceDetails = async (req: Request, res: Response) => {
 // Get all invoices
 export const getInvoices = async (req: Request, res: Response) => {
   try {
-    // For now, generate mock invoices based on orders
     const result = await pool.query(`
       SELECT
-        oi.restaurant_id,
-        r.name as restaurant_name,
-        DATE_TRUNC('month', o.created_at) as period_start,
-        DATE_TRUNC('month', o.created_at) + INTERVAL '1 month' as period_end,
-        SUM(oi.item_total) as amount,
-        'paid' as status,
-        MIN(o.created_at) as created_at
-      FROM order_items oi
-      JOIN orders o ON oi.order_id = o.id
-      JOIN restaurants r ON oi.restaurant_id = r.id
-      WHERE o.status = 'delivered'
-      GROUP BY oi.restaurant_id, r.name, DATE_TRUNC('month', o.created_at)
-      ORDER BY period_start DESC
+        i.id,
+        i.order_id,
+        i.invoice_number,
+        i.invoice_type,
+        i.amount,
+        i.status,
+        i.created_at,
+        o.order_number,
+        COALESCE(
+          (SELECT name FROM restaurants WHERE id = o.restaurants[1]),
+          'Multiple'
+        ) as restaurant_name,
+        CONCAT(u.first_name, ' ', u.last_name) as customer_name,
+        u.email as customer_email
+      FROM customer_invoices i
+      JOIN orders o ON i.order_id = o.id
+      JOIN users u ON o.customer_id = u.id
+      ORDER BY i.created_at DESC
     `);
-
-    const invoices = result.rows.map((row, index) => ({
-      id: index + 1,
-      restaurant_id: row.restaurant_id,
-      restaurant_name: row.restaurant_name,
-      amount: parseFloat(row.amount),
-      status: row.status,
-      period_start: row.period_start,
-      period_end: row.period_end,
-      created_at: row.created_at,
-    }));
 
     res.json({
       success: true,
-      data: invoices,
+      data: result.rows,
     });
   } catch (error) {
     console.error("Error fetching invoices:", error);
@@ -273,10 +274,39 @@ export const getInvoices = async (req: Request, res: Response) => {
 // Generate invoice
 export const generateInvoice = async (req: Request, res: Response) => {
   try {
-    // This would typically create invoice records in a dedicated table
-    // For now, just return success
+    const { order_id, invoice_type = 'standard', amount, notes } = req.body;
+
+    if (!order_id) {
+      return res.status(400).json({ success: false, error: "order_id is required" });
+    }
+
+    // Get the next invoice number for this order
+    const invoiceCountResult = await pool.query(
+      'SELECT COALESCE(MAX(invoice_number), 0) as max_invoice_number FROM customer_invoices WHERE order_id = $1',
+      [order_id]
+    );
+    const nextInvoiceNumber = invoiceCountResult.rows[0].max_invoice_number + 1;
+
+    // Get order details
+    const orderResult = await pool.query('SELECT total_amount, payment_status FROM orders WHERE id = $1', [order_id]);
+    if (orderResult.rows.length === 0) {
+      return res.status(404).json({ success: false, error: "Order not found" });
+    }
+
+    const order = orderResult.rows[0];
+    const invoiceAmount = amount || order.total_amount;
+    const invoiceStatus = order.payment_status || 'pending';
+
+    // Create the invoice
+    const result = await pool.query(`
+      INSERT INTO customer_invoices (order_id, invoice_number, invoice_type, amount, status, notes)
+      VALUES ($1, $2, $3, $4, $5, $6)
+      RETURNING *
+    `, [order_id, nextInvoiceNumber, invoice_type, invoiceAmount, invoiceStatus, notes || null]);
+
     res.json({
       success: true,
+      data: result.rows[0],
       message: "Invoice generated successfully",
     });
   } catch (error) {
@@ -338,5 +368,39 @@ export const getOrders = async (req: Request, res: Response) => {
   } catch (error) {
     console.error("Error fetching orders:", error);
     res.status(500).json({ success: false, error: "Failed to fetch orders" });
+  }
+};
+
+// Get order details by ID
+export const getOrderDetails = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    const result = await pool.query(`
+      SELECT
+        o.*,
+        COALESCE(
+          (SELECT name FROM restaurants WHERE id = o.restaurants[1]),
+          'Multiple'
+        ) as restaurant_name,
+        CONCAT(u.first_name, ' ', u.last_name) as customer_name,
+        u.email as customer_email,
+        u.phone as customer_phone
+      FROM orders o
+      JOIN users u ON o.customer_id = u.id
+      WHERE o.id = $1
+    `, [id]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ success: false, error: "Order not found" });
+    }
+
+    res.json({
+      success: true,
+      data: result.rows[0],
+    });
+  } catch (error) {
+    console.error("Error fetching order details:", error);
+    res.status(500).json({ success: false, error: "Failed to fetch order details" });
   }
 };

@@ -24,8 +24,8 @@ INSERT INTO users (id, email, phone, password_hash, first_name, last_name, role,
 ('33333333-3333-3333-3333-333333333333', 'owner3@cuts.ae', '+971501234569', '$2b$10$wZQ/Jo1u0PxUxmhtpJNCf.0f57x.c.QI3.KLo9pLvCUs9E6qrm7ty', 'Khalid', 'Al Suwaidi', 'restaurant_owner', NOW(), NOW()),
 
 -- Support Agents
-('88888888-8888-8888-8888-888888888888', 'support@cuts.ae', '+971501234588', '$2b$10$wZQ/Jo1u0PxUxmhtpJNCf.0f57x.c.QI3.KLo9pLvCUs9E6qrm7ty', 'Support', 'Agent', 'support', NOW(), NOW()),
-('77777777-7777-7777-7777-777777777777', 'agent@cuts.ae', '+971501234577', '$2b$10$wZQ/Jo1u0PxUxmhtpJNCf.0f57x.c.QI3.KLo9pLvCUs9E6qrm7ty', 'Sarah', 'Mohammed', 'support', NOW(), NOW()),
+('88888888-8888-8888-8888-888888888888', 'support@cuts.ae', '+971501234588', '$2b$10$y3QstpxM8pOU2dlzlA1uAetzQf0536ualAA8dZ9hjN8gDROEc2TeO', 'Support', 'Agent', 'support', NOW(), NOW()),
+('77777777-7777-7777-7777-777777777777', 'agent@cuts.ae', '+971501234577', '$2b$10$y3QstpxM8pOU2dlzlA1uAetzQf0536ualAA8dZ9hjN8gDROEc2TeO', 'Sarah', 'Mohammed', 'support', NOW(), NOW()),
 
 -- Customers
 ('44444444-4444-4444-4444-444444444444', 'customer1@cuts.ae', '+971501234570', '$2b$10$wZQ/Jo1u0PxUxmhtpJNCf.0f57x.c.QI3.KLo9pLvCUs9E6qrm7ty', 'Omar', 'Hassan', 'customer', NOW(), NOW()),
@@ -141,8 +141,8 @@ SELECT 'Restaurant Owner: owner1@cuts.ae / password123' AS credentials;
 SELECT 'Restaurant Owner: owner2@cuts.ae / password123' AS credentials;
 SELECT 'Restaurant Owner: owner3@cuts.ae / password123' AS credentials;
 SELECT 'Admin: admin@cuts.ae / password123' AS credentials;
-SELECT 'Support Agent: support@cuts.ae / password123' AS credentials;
-SELECT 'Support Agent: agent@cuts.ae / password123' AS credentials;
+SELECT 'Support Agent: support@cuts.ae / TabsTriggerIsnt2026*$' AS credentials;
+SELECT 'Support Agent: agent@cuts.ae / TabsTriggerIsnt2026*$' AS credentials;
 SELECT 'Customer: customer1@cuts.ae / password123' AS credentials;
 SELECT 'Customer: customer2@cuts.ae / password123' AS credentials;
 SELECT 'Customer: customer3@cuts.ae / password123' AS credentials;

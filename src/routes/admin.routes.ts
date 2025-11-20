@@ -10,6 +10,7 @@ import {
   generateInvoice,
   getUsers,
   getOrders,
+  getOrderDetails,
 } from "../controllers/admin.controller";
 
 const router = Router();
@@ -37,5 +38,6 @@ router.get("/users", getUsers);
 
 // Orders
 router.get("/orders", getOrders);
+router.get("/orders/:id", getOrderDetails);
 
 export default router;
