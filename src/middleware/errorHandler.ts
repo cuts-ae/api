@@ -193,7 +193,7 @@ export const errorHandler = (
     method: req.method,
     userId: (req as any).user?.id,
     ip: req.ip,
-    userAgent: req.headers['user-agent'],
+    userAgent: req.headers ? req.headers['user-agent'] : undefined,
     correlationId: (req as RequestWithLogger).correlationId,
   };
 
