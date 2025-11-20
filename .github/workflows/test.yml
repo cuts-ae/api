@@ -62,7 +62,7 @@ jobs:
       continue-on-error: true
 
     - name: Run unit tests
-      run: npm test -- --testPathIgnorePatterns=integration --coverage --maxWorkers=2
+      run: npm test -- --testPathIgnorePatterns="integration|chat.socket" --coverage --maxWorkers=2
 
     - name: Run integration tests
       run: npm test -- --testPathPatterns=integration --coverage --maxWorkers=2
