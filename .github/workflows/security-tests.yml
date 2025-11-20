@@ -1,0 +1,176 @@
+name: Security Tests
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master, develop ]
+
+jobs:
+  auth-bypass-tests:
+    name: Authentication Bypass Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    strategy:
+      matrix:
+        node-version: [20.x]
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Create .env.test file
+      run: |
+        cat > .env.test << EOF
+        NODE_ENV=test
+        PORT=45000
+        DB_HOST=localhost
+        DB_PORT=5432
+        DB_NAME=cuts_test
+        DB_USER=postgres
+        DB_PASSWORD=postgres
+        JWT_SECRET=test-secret-key-for-ci-cd-pipeline-12345
+        UPLOAD_DIR=./uploads
+        EOF
+
+    - name: Run authentication bypass tests
+      run: npm test -- auth-bypass.security.test.ts --coverage --maxWorkers=2
+      env:
+        NODE_ENV: test
+
+    - name: Upload auth bypass coverage
+      uses: codecov/codecov-action@v4
+      with:
+        files: ./coverage/clover.xml
+        flags: security-auth
+        name: auth-bypass-coverage
+      continue-on-error: true
+
+  rate-limit-tests:
+    name: Rate Limiting Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    strategy:
+      matrix:
+        node-version: [20.x]
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Create .env.test file
+      run: |
+        cat > .env.test << EOF
+        NODE_ENV=test
+        PORT=45000
+        DB_HOST=localhost
+        DB_PORT=5432
+        DB_NAME=cuts_test
+        DB_USER=postgres
+        DB_PASSWORD=postgres
+        JWT_SECRET=test-secret-key-for-ci-cd-pipeline-12345
+        UPLOAD_DIR=./uploads
+        EOF
+
+    - name: Run rate limiting tests
+      run: npm test -- rate-limit.security.test.ts --coverage --maxWorkers=2
+      env:
+        NODE_ENV: test
+
+    - name: Upload rate limit coverage
+      uses: codecov/codecov-action@v4
+      with:
+        files: ./coverage/clover.xml
+        flags: security-ratelimit
+        name: rate-limit-coverage
+      continue-on-error: true
+
+  xss-tests:
+    name: XSS Security Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: cuts_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    strategy:
+      matrix:
+        node-version: [20.x]
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Create .env.test file
+      run: |
+        cat > .env.test << EOF
+        NODE_ENV=test
+        PORT=45000
+        DB_HOST=localhost
+        DB_PORT=5432
+        DB_NAME=cuts_test
+        DB_USER=postgres
+        DB_PASSWORD=postgres
+        JWT_SECRET=test-secret-key-for-ci-cd-pipeline-12345
+        UPLOAD_DIR=./uploads
+        EOF
+
+    - name: Run XSS security tests
+      run: npm test -- xss.security.test.ts --coverage --maxWorkers=2
+      env:
+        NODE_ENV: test
+        DB_HOST: localhost
+        DB_PORT: 5432
+        DB_NAME: cuts_test
+        DB_USER: postgres
+        DB_PASSWORD: postgres
+      continue-on-error: true
+
+    - name: Upload XSS coverage
+      uses: codecov/codecov-action@v4
+      with:
+        files: ./coverage/clover.xml
+        flags: security-xss
+        name: xss-coverage
+      continue-on-error: true
