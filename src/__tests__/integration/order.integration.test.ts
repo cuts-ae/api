@@ -44,14 +44,14 @@ describe('Order Routes Integration Tests', () => {
   let adminToken: string;
   let supportToken: string;
 
-  const customerId = 'customer-123';
-  const restaurantOwnerId = 'owner-456';
-  const driverId = 'driver-789';
-  const adminId = 'admin-101';
-  const supportId = 'support-202';
-  const restaurantId = 'restaurant-001';
-  const restaurant2Id = 'restaurant-002';
-  const restaurant3Id = 'restaurant-003';
+  const customerId = 'ff338594-01f4-449d-bea2-8bed6fd7f2fe';
+  const restaurantOwnerId = 'aeee4fe6-14a8-4348-ba3f-77ee1c7ec6d2';
+  const driverId = '204bc1c9-46e7-4ef8-9f9a-558d67d6165a';
+  const adminId = '0ed3f901-b754-4be9-af64-0790de73c153';
+  const supportId = 'b4d4cb4c-1637-4d97-9f98-46dbe60a7d67';
+  const restaurantId = 'f481185d-129f-4847-bdf6-d57ca0ff13f6';
+  const restaurant2Id = 'dff247f8-d2d9-4327-9ddc-9da8347ea578';
+  const restaurant3Id = '07ed9f60-3f64-4c6f-bcbf-6a216d220ddf';
 
   beforeAll(() => {
     customerToken = jwt.sign(
@@ -92,13 +92,13 @@ describe('Order Routes Integration Tests', () => {
     const validOrderData = {
       items: [
         {
-          menu_item_id: 'item-1',
+          menu_item_id: '46cc47d7-25b0-4a01-84b0-85a1b899b234',
           restaurant_id: restaurantId,
           quantity: 2,
           special_instructions: 'No onions please'
         },
         {
-          menu_item_id: 'item-2',
+          menu_item_id: '4be24b46-6e24-48eb-8c96-6d3cacccc6bb',
           restaurant_id: restaurantId,
           quantity: 1
         }
@@ -109,7 +109,7 @@ describe('Order Routes Integration Tests', () => {
 
     const mockMenuItems = [
       {
-        id: 'item-1',
+        id: '46cc47d7-25b0-4a01-84b0-85a1b899b234',
         base_price: 50,
         restaurant_id: restaurantId,
         is_available: true,
@@ -121,7 +121,7 @@ describe('Order Routes Integration Tests', () => {
         }]
       },
       {
-        id: 'item-2',
+        id: '4be24b46-6e24-48eb-8c96-6d3cacccc6bb',
         base_price: 30,
         restaurant_id: restaurantId,
         is_available: true,
@@ -153,7 +153,7 @@ describe('Order Routes Integration Tests', () => {
         order_items: [
           {
             id: 'order-item-1',
-            menu_item_id: 'item-1',
+            menu_item_id: '46cc47d7-25b0-4a01-84b0-85a1b899b234',
             quantity: 2,
             base_price: 50,
             item_total: 100,
@@ -162,7 +162,7 @@ describe('Order Routes Integration Tests', () => {
           },
           {
             id: 'order-item-2',
-            menu_item_id: 'item-2',
+            menu_item_id: '4be24b46-6e24-48eb-8c96-6d3cacccc6bb',
             quantity: 1,
             base_price: 30,
             item_total: 30,
@@ -199,8 +199,8 @@ describe('Order Routes Integration Tests', () => {
       const twoRestaurantOrder = {
         ...validOrderData,
         items: [
-          { menu_item_id: 'item-1', restaurant_id: restaurantId, quantity: 2 },
-          { menu_item_id: 'item-2', restaurant_id: restaurant2Id, quantity: 1 }
+          { menu_item_id: '46cc47d7-25b0-4a01-84b0-85a1b899b234', restaurant_id: restaurantId, quantity: 2 },
+          { menu_item_id: '4be24b46-6e24-48eb-8c96-6d3cacccc6bb', restaurant_id: restaurant2Id, quantity: 1 }
         ]
       };
 
@@ -242,7 +242,7 @@ describe('Order Routes Integration Tests', () => {
         ...validOrderData,
         items: [
           {
-            menu_item_id: 'item-1',
+            menu_item_id: '46cc47d7-25b0-4a01-84b0-85a1b899b234',
             restaurant_id: restaurantId,
             quantity: 1,
             special_instructions: 'Extra spicy, no cilantro, well done'
@@ -281,16 +281,16 @@ describe('Order Routes Integration Tests', () => {
       const threeRestaurantOrder = {
         ...validOrderData,
         items: [
-          { menu_item_id: 'item-1', restaurant_id: restaurantId, quantity: 1 },
-          { menu_item_id: 'item-2', restaurant_id: restaurant2Id, quantity: 1 },
-          { menu_item_id: 'item-3', restaurant_id: restaurant3Id, quantity: 1 }
+          { menu_item_id: '46cc47d7-25b0-4a01-84b0-85a1b899b234', restaurant_id: restaurantId, quantity: 1 },
+          { menu_item_id: '4be24b46-6e24-48eb-8c96-6d3cacccc6bb', restaurant_id: restaurant2Id, quantity: 1 },
+          { menu_item_id: '7f128d44-199e-4f9c-80ba-9f95d80d015f', restaurant_id: restaurant3Id, quantity: 1 }
         ]
       };
 
       const threeRestaurantMenuItems = [
-        { id: 'item-1', base_price: 50, restaurant_id: restaurantId, is_available: true, nutritional_info: null },
-        { id: 'item-2', base_price: 30, restaurant_id: restaurant2Id, is_available: true, nutritional_info: null },
-        { id: 'item-3', base_price: 40, restaurant_id: restaurant3Id, is_available: true, nutritional_info: null }
+        { id: '46cc47d7-25b0-4a01-84b0-85a1b899b234', base_price: 50, restaurant_id: restaurantId, is_available: true, nutritional_info: null },
+        { id: '4be24b46-6e24-48eb-8c96-6d3cacccc6bb', base_price: 30, restaurant_id: restaurant2Id, is_available: true, nutritional_info: null },
+        { id: '7f128d44-199e-4f9c-80ba-9f95d80d015f', base_price: 40, restaurant_id: restaurant3Id, is_available: true, nutritional_info: null }
       ];
 
       mockQuery.mockResolvedValueOnce({ rows: threeRestaurantMenuItems, rowCount: 3 });
@@ -463,7 +463,7 @@ describe('Order Routes Integration Tests', () => {
       order_items: [
         {
           id: 'order-item-1',
-          menu_item_id: 'item-1',
+          menu_item_id: '46cc47d7-25b0-4a01-84b0-85a1b899b234',
           quantity: 2,
           base_price: 50,
           item_total: 100,
@@ -603,7 +603,7 @@ describe('Order Routes Integration Tests', () => {
         },
         order_items: [
           {
-            id: 'item-1',
+            id: '46cc47d7-25b0-4a01-84b0-85a1b899b234',
             menu_item_id: 'menu-1',
             quantity: 2,
             base_price: 50,
@@ -1124,7 +1124,7 @@ describe('Order Routes Integration Tests', () => {
       };
 
       const mockMenuItem = {
-        id: 'item-1',
+        id: '46cc47d7-25b0-4a01-84b0-85a1b899b234',
         base_price: 50,
         restaurant_id: restaurantId,
         is_available: true,
@@ -1141,7 +1141,7 @@ describe('Order Routes Integration Tests', () => {
         .post('/api/v1/orders')
         .set('Authorization', `Bearer ${customerToken}`)
         .send({
-          items: [{ menu_item_id: 'item-1', restaurant_id: restaurantId, quantity: 1 }],
+          items: [{ menu_item_id: '46cc47d7-25b0-4a01-84b0-85a1b899b234', restaurant_id: restaurantId, quantity: 1 }],
           delivery_address: {
             street: '123 Main St',
             city: 'Dubai',
@@ -1259,7 +1259,7 @@ describe('Order Routes Integration Tests', () => {
         .post('/api/v1/orders')
         .set('Authorization', `Bearer ${driverToken}`)
         .send({
-          items: [{ menu_item_id: 'item-1', restaurant_id: restaurantId, quantity: 1 }],
+          items: [{ menu_item_id: '46cc47d7-25b0-4a01-84b0-85a1b899b234', restaurant_id: restaurantId, quantity: 1 }],
           delivery_address: {
             street: '123 Main St',
             city: 'Dubai',
