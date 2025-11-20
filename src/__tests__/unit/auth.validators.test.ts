@@ -371,10 +371,10 @@ describe('Auth Validators', () => {
     });
 
     describe('Invalid password', () => {
-      it('should validate empty password', () => {
+      it('should reject empty password', () => {
         const data = { ...validLoginData, password: '' };
         const result = loginSchema.safeParse(data);
-        expect(result.success).toBe(true);
+        expect(result.success).toBe(false);
       });
 
       it('should reject missing password', () => {
