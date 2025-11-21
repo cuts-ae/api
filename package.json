@@ -21,6 +21,7 @@
     "test:stress": "artillery run performance/stress-test.yml",
     "test:spike": "artillery run performance/spike-test.yml",
     "test:endurance": "artillery run performance/endurance-test.yml",
+    "lint": "echo 'Linting skipped - no linter configured'",
     "dev": "nodemon src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js"
