@@ -155,11 +155,12 @@ describe('Admin Controller', () => {
 
       await adminController.getAnalytics(mockRequest as Request, mockResponse as Response, mockNext);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(500);
-      expect(mockResponse.json).toHaveBeenCalledWith({
-        success: false,
-        error: 'Failed to fetch analytics',
-      });
+      expect(mockNext).toHaveBeenCalledWith(
+        expect.objectContaining({
+          statusCode: 500,
+          message: 'Failed to fetch analytics'
+        })
+      );
       expect(consoleError).toHaveBeenCalledWith('Error fetching analytics:', expect.any(Error));
 
       consoleError.mockRestore();
@@ -303,11 +304,12 @@ describe('Admin Controller', () => {
 
       await adminController.getRestaurants(mockRequest as Request, mockResponse as Response, mockNext);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(500);
-      expect(mockResponse.json).toHaveBeenCalledWith({
-        success: false,
-        error: 'Failed to fetch restaurants',
-      });
+      expect(mockNext).toHaveBeenCalledWith(
+        expect.objectContaining({
+          statusCode: 500,
+          message: 'Failed to fetch restaurants'
+        })
+      );
       expect(consoleError).toHaveBeenCalledWith('Error fetching restaurants:', expect.any(Error));
 
       consoleError.mockRestore();
@@ -350,11 +352,12 @@ describe('Admin Controller', () => {
 
       await adminController.approveRestaurant(mockRequest as Request, mockResponse as Response, mockNext);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(404);
-      expect(mockResponse.json).toHaveBeenCalledWith({
-        success: false,
-        error: 'Restaurant not found',
-      });
+      expect(mockNext).toHaveBeenCalledWith(
+        expect.objectContaining({
+          statusCode: 404,
+          message: 'Restaurant not found'
+        })
+      );
     });
 
     it('should handle database error', async () => {
@@ -364,11 +367,12 @@ describe('Admin Controller', () => {
 
       await adminController.approveRestaurant(mockRequest as Request, mockResponse as Response, mockNext);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(500);
-      expect(mockResponse.json).toHaveBeenCalledWith({
-        success: false,
-        error: 'Failed to approve restaurant',
-      });
+      expect(mockNext).toHaveBeenCalledWith(
+        expect.objectContaining({
+          statusCode: 500,
+          message: 'Failed to approve restaurant'
+        })
+      );
       expect(consoleError).toHaveBeenCalledWith('Error approving restaurant:', expect.any(Error));
 
       consoleError.mockRestore();
@@ -475,11 +479,12 @@ describe('Admin Controller', () => {
 
       await adminController.getDrivers(mockRequest as Request, mockResponse as Response, mockNext);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(500);
-      expect(mockResponse.json).toHaveBeenCalledWith({
-        success: false,
-        error: 'Failed to fetch drivers',
-      });
+      expect(mockNext).toHaveBeenCalledWith(
+        expect.objectContaining({
+          statusCode: 500,
+          message: 'Failed to fetch drivers'
+        })
+      );
       expect(consoleError).toHaveBeenCalledWith('Error fetching drivers:', expect.any(Error));
 
       consoleError.mockRestore();
@@ -526,11 +531,12 @@ describe('Admin Controller', () => {
 
       await adminController.approveDriver(mockRequest as Request, mockResponse as Response, mockNext);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(404);
-      expect(mockResponse.json).toHaveBeenCalledWith({
-        success: false,
-        error: 'Driver not found',
-      });
+      expect(mockNext).toHaveBeenCalledWith(
+        expect.objectContaining({
+          statusCode: 404,
+          message: 'Driver not found'
+        })
+      );
     });
 
     it('should return 404 when user exists but is not a driver', async () => {
@@ -539,11 +545,12 @@ describe('Admin Controller', () => {
 
       await adminController.approveDriver(mockRequest as Request, mockResponse as Response, mockNext);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(404);
-      expect(mockResponse.json).toHaveBeenCalledWith({
-        success: false,
-        error: 'Driver not found',
-      });
+      expect(mockNext).toHaveBeenCalledWith(
+        expect.objectContaining({
+          statusCode: 404,
+          message: 'Driver not found'
+        })
+      );
     });
 
     it('should handle database error', async () => {
@@ -553,11 +560,12 @@ describe('Admin Controller', () => {
 
       await adminController.approveDriver(mockRequest as Request, mockResponse as Response, mockNext);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(500);
-      expect(mockResponse.json).toHaveBeenCalledWith({
-        success: false,
-        error: 'Failed to approve driver',
-      });
+      expect(mockNext).toHaveBeenCalledWith(
+        expect.objectContaining({
+          statusCode: 500,
+          message: 'Failed to approve driver'
+        })
+      );
       expect(consoleError).toHaveBeenCalledWith('Error approving driver:', expect.any(Error));
 
       consoleError.mockRestore();
@@ -673,11 +681,12 @@ describe('Admin Controller', () => {
 
       await adminController.getInvoiceDetails(mockRequest as Request, mockResponse as Response, mockNext);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(404);
-      expect(mockResponse.json).toHaveBeenCalledWith({
-        success: false,
-        error: 'Invoice not found',
-      });
+      expect(mockNext).toHaveBeenCalledWith(
+        expect.objectContaining({
+          statusCode: 404,
+          message: 'Invoice not found'
+        })
+      );
     });
 
     it('should handle invoice with no items', async () => {
@@ -743,11 +752,12 @@ describe('Admin Controller', () => {
 
       await adminController.getInvoiceDetails(mockRequest as Request, mockResponse as Response, mockNext);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(500);
-      expect(mockResponse.json).toHaveBeenCalledWith({
-        success: false,
-        error: 'Failed to fetch invoice details',
-      });
+      expect(mockNext).toHaveBeenCalledWith(
+        expect.objectContaining({
+          statusCode: 500,
+          message: 'Failed to fetch invoice details'
+        })
+      );
       expect(consoleError).toHaveBeenCalledWith('Error fetching invoice details:', expect.any(Error));
 
       consoleError.mockRestore();
@@ -878,11 +888,12 @@ describe('Admin Controller', () => {
 
       await adminController.getInvoices(mockRequest as Request, mockResponse as Response, mockNext);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(500);
-      expect(mockResponse.json).toHaveBeenCalledWith({
-        success: false,
-        error: 'Failed to fetch invoices',
-      });
+      expect(mockNext).toHaveBeenCalledWith(
+        expect.objectContaining({
+          statusCode: 500,
+          message: 'Failed to fetch invoices'
+        })
+      );
       expect(consoleError).toHaveBeenCalledWith('Error fetching invoices:', expect.any(Error));
 
       consoleError.mockRestore();
@@ -1085,11 +1096,12 @@ describe('Admin Controller', () => {
 
       await adminController.generateInvoice(mockRequest as Request, mockResponse as Response, mockNext);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(400);
-      expect(mockResponse.json).toHaveBeenCalledWith({
-        success: false,
-        error: 'order_id is required',
-      });
+      expect(mockNext).toHaveBeenCalledWith(
+        expect.objectContaining({
+          statusCode: 400,
+          message: 'order_id is required'
+        })
+      );
     });
 
     it('should return 404 when order not found', async () => {
@@ -1103,11 +1115,12 @@ describe('Admin Controller', () => {
 
       await adminController.generateInvoice(mockRequest as Request, mockResponse as Response, mockNext);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(404);
-      expect(mockResponse.json).toHaveBeenCalledWith({
-        success: false,
-        error: 'Order not found',
-      });
+      expect(mockNext).toHaveBeenCalledWith(
+        expect.objectContaining({
+          statusCode: 404,
+          message: 'Order not found'
+        })
+      );
     });
 
     it('should handle database error', async () => {
@@ -1119,11 +1132,12 @@ describe('Admin Controller', () => {
 
       await adminController.generateInvoice(mockRequest as Request, mockResponse as Response, mockNext);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(500);
-      expect(mockResponse.json).toHaveBeenCalledWith({
-        success: false,
-        error: 'Failed to generate invoice',
-      });
+      expect(mockNext).toHaveBeenCalledWith(
+        expect.objectContaining({
+          statusCode: 500,
+          message: 'Failed to generate invoice'
+        })
+      );
       expect(consoleError).toHaveBeenCalledWith('Error generating invoice:', expect.any(Error));
 
       consoleError.mockRestore();
@@ -1316,11 +1330,12 @@ describe('Admin Controller', () => {
 
       await adminController.getUsers(mockRequest as Request, mockResponse as Response, mockNext);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(500);
-      expect(mockResponse.json).toHaveBeenCalledWith({
-        success: false,
-        error: 'Failed to fetch users',
-      });
+      expect(mockNext).toHaveBeenCalledWith(
+        expect.objectContaining({
+          statusCode: 500,
+          message: 'Failed to fetch users'
+        })
+      );
       expect(consoleError).toHaveBeenCalledWith('Error fetching users:', expect.any(Error));
 
       consoleError.mockRestore();
@@ -1434,11 +1449,12 @@ describe('Admin Controller', () => {
 
       await adminController.getOrders(mockRequest as Request, mockResponse as Response, mockNext);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(500);
-      expect(mockResponse.json).toHaveBeenCalledWith({
-        success: false,
-        error: 'Failed to fetch orders',
-      });
+      expect(mockNext).toHaveBeenCalledWith(
+        expect.objectContaining({
+          statusCode: 500,
+          message: 'Failed to fetch orders'
+        })
+      );
       expect(consoleError).toHaveBeenCalledWith('Error fetching orders:', expect.any(Error));
 
       consoleError.mockRestore();
@@ -1492,11 +1508,12 @@ describe('Admin Controller', () => {
 
       await adminController.getOrderDetails(mockRequest as Request, mockResponse as Response, mockNext);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(404);
-      expect(mockResponse.json).toHaveBeenCalledWith({
-        success: false,
-        error: 'Order not found',
-      });
+      expect(mockNext).toHaveBeenCalledWith(
+        expect.objectContaining({
+          statusCode: 404,
+          message: 'Order not found'
+        })
+      );
     });
 
     it('should query with correct order id', async () => {
@@ -1544,11 +1561,12 @@ describe('Admin Controller', () => {
 
       await adminController.getOrderDetails(mockRequest as Request, mockResponse as Response, mockNext);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(500);
-      expect(mockResponse.json).toHaveBeenCalledWith({
-        success: false,
-        error: 'Failed to fetch order details',
-      });
+      expect(mockNext).toHaveBeenCalledWith(
+        expect.objectContaining({
+          statusCode: 500,
+          message: 'Failed to fetch order details'
+        })
+      );
       expect(consoleError).toHaveBeenCalledWith('Error fetching order details:', expect.any(Error));
 
       consoleError.mockRestore();
