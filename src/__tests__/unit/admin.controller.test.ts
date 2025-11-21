@@ -327,7 +327,7 @@ describe('Admin Controller', () => {
         ]
       });
 
-      await adminController.approveRestaurant(mockRequest as Request, mockResponse as Response);
+      await adminController.approveRestaurant(mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(mockQuery).toHaveBeenCalledWith(
         'UPDATE restaurants SET is_active = true WHERE id = $1 RETURNING *',
@@ -348,7 +348,7 @@ describe('Admin Controller', () => {
       mockRequest.params = { id: '999' };
       mockQuery.mockResolvedValueOnce({ rows: [] });
 
-      await adminController.approveRestaurant(mockRequest as Request, mockResponse as Response);
+      await adminController.approveRestaurant(mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(mockResponse.status).toHaveBeenCalledWith(404);
       expect(mockResponse.json).toHaveBeenCalledWith({
@@ -362,7 +362,7 @@ describe('Admin Controller', () => {
       mockRequest.params = { id: '123' };
       mockQuery.mockRejectedValueOnce(new Error('Database error'));
 
-      await adminController.approveRestaurant(mockRequest as Request, mockResponse as Response);
+      await adminController.approveRestaurant(mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(mockResponse.status).toHaveBeenCalledWith(500);
       expect(mockResponse.json).toHaveBeenCalledWith({
@@ -380,7 +380,7 @@ describe('Admin Controller', () => {
         rows: [{ id: '123', is_active: true }]
       });
 
-      await adminController.approveRestaurant(mockRequest as Request, mockResponse as Response);
+      await adminController.approveRestaurant(mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(mockQuery.mock.calls[0][0]).toContain('SET is_active = true');
     });
@@ -413,7 +413,7 @@ describe('Admin Controller', () => {
         ]
       });
 
-      await adminController.getDrivers(mockRequest as Request, mockResponse as Response);
+      await adminController.getDrivers(mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: true,
@@ -445,7 +445,7 @@ describe('Admin Controller', () => {
     it('should return empty array when no drivers exist', async () => {
       mockQuery.mockResolvedValueOnce({ rows: [] });
 
-      await adminController.getDrivers(mockRequest as Request, mockResponse as Response);
+      await adminController.getDrivers(mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: true,
@@ -456,7 +456,7 @@ describe('Admin Controller', () => {
     it('should filter by driver role', async () => {
       mockQuery.mockResolvedValueOnce({ rows: [] });
 
-      await adminController.getDrivers(mockRequest as Request, mockResponse as Response);
+      await adminController.getDrivers(mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(mockQuery.mock.calls[0][0]).toContain("WHERE role = 'driver'");
     });
@@ -464,7 +464,7 @@ describe('Admin Controller', () => {
     it('should order drivers by creation date descending', async () => {
       mockQuery.mockResolvedValueOnce({ rows: [] });
 
-      await adminController.getDrivers(mockRequest as Request, mockResponse as Response);
+      await adminController.getDrivers(mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(mockQuery.mock.calls[0][0]).toContain('ORDER BY created_at DESC');
     });
@@ -473,7 +473,7 @@ describe('Admin Controller', () => {
       const consoleError = jest.spyOn(console, 'error').mockImplementation();
       mockQuery.mockRejectedValueOnce(new Error('Database error'));
 
-      await adminController.getDrivers(mockRequest as Request, mockResponse as Response);
+      await adminController.getDrivers(mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(mockResponse.status).toHaveBeenCalledWith(500);
       expect(mockResponse.json).toHaveBeenCalledWith({
@@ -501,7 +501,7 @@ describe('Admin Controller', () => {
         ]
       });
 
-      await adminController.approveDriver(mockRequest as Request, mockResponse as Response);
+      await adminController.approveDriver(mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(mockQuery).toHaveBeenCalledWith(
         "UPDATE users SET status = 'active' WHERE id = $1 AND role = 'driver' RETURNING *",
@@ -524,7 +524,7 @@ describe('Admin Controller', () => {
       mockRequest.params = { id: '999' };
       mockQuery.mockResolvedValueOnce({ rows: [] });
 
-      await adminController.approveDriver(mockRequest as Request, mockResponse as Response);
+      await adminController.approveDriver(mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(mockResponse.status).toHaveBeenCalledWith(404);
       expect(mockResponse.json).toHaveBeenCalledWith({
@@ -537,7 +537,7 @@ describe('Admin Controller', () => {
       mockRequest.params = { id: '123' };
       mockQuery.mockResolvedValueOnce({ rows: [] });
 
-      await adminController.approveDriver(mockRequest as Request, mockResponse as Response);
+      await adminController.approveDriver(mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(mockResponse.status).toHaveBeenCalledWith(404);
       expect(mockResponse.json).toHaveBeenCalledWith({
@@ -551,7 +551,7 @@ describe('Admin Controller', () => {
       mockRequest.params = { id: '123' };
       mockQuery.mockRejectedValueOnce(new Error('Database error'));
 
-      await adminController.approveDriver(mockRequest as Request, mockResponse as Response);
+      await adminController.approveDriver(mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(mockResponse.status).toHaveBeenCalledWith(500);
       expect(mockResponse.json).toHaveBeenCalledWith({
@@ -569,7 +569,7 @@ describe('Admin Controller', () => {
         rows: [{ id: '123', role: 'driver', status: 'active' }]
       });
 
-      await adminController.approveDriver(mockRequest as Request, mockResponse as Response);
+      await adminController.approveDriver(mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(mockQuery.mock.calls[0][0]).toContain("role = 'driver'");
     });
@@ -623,7 +623,7 @@ describe('Admin Controller', () => {
           ]
         });
 
-      await adminController.getInvoiceDetails(mockRequest as Request, mockResponse as Response);
+      await adminController.getInvoiceDetails(mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: true,
@@ -671,7 +671,7 @@ describe('Admin Controller', () => {
       mockRequest.params = { id: '999' };
       mockQuery.mockResolvedValueOnce({ rows: [] });
 
-      await adminController.getInvoiceDetails(mockRequest as Request, mockResponse as Response);
+      await adminController.getInvoiceDetails(mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(mockResponse.status).toHaveBeenCalledWith(404);
       expect(mockResponse.json).toHaveBeenCalledWith({
@@ -706,7 +706,7 @@ describe('Admin Controller', () => {
         })
         .mockResolvedValueOnce({ rows: [] });
 
-      await adminController.getInvoiceDetails(mockRequest as Request, mockResponse as Response);
+      await adminController.getInvoiceDetails(mockRequest as Request, mockResponse as Response, mockNext);
 
       const response = (mockResponse.json as jest.Mock).mock.calls[0][0];
       expect(response.success).toBe(true);
@@ -730,7 +730,7 @@ describe('Admin Controller', () => {
         })
         .mockResolvedValueOnce({ rows: [] });
 
-      await adminController.getInvoiceDetails(mockRequest as Request, mockResponse as Response);
+      await adminController.getInvoiceDetails(mockRequest as Request, mockResponse as Response, mockNext);
 
       const response = (mockResponse.json as jest.Mock).mock.calls[0][0];
       expect(response.data.restaurant_name).toBe('Multiple');
@@ -741,7 +741,7 @@ describe('Admin Controller', () => {
       mockRequest.params = { id: '123' };
       mockQuery.mockRejectedValueOnce(new Error('Database error'));
 
-      await adminController.getInvoiceDetails(mockRequest as Request, mockResponse as Response);
+      await adminController.getInvoiceDetails(mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(mockResponse.status).toHaveBeenCalledWith(500);
       expect(mockResponse.json).toHaveBeenCalledWith({
@@ -770,7 +770,7 @@ describe('Admin Controller', () => {
         })
         .mockResolvedValueOnce({ rows: [] });
 
-      await adminController.getInvoiceDetails(mockRequest as Request, mockResponse as Response);
+      await adminController.getInvoiceDetails(mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(mockQuery.mock.calls[1][1]).toEqual(['456']);
     });
@@ -809,7 +809,7 @@ describe('Admin Controller', () => {
         ]
       });
 
-      await adminController.getInvoices(mockRequest as Request, mockResponse as Response);
+      await adminController.getInvoices(mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: true,
@@ -847,7 +847,7 @@ describe('Admin Controller', () => {
     it('should return empty array when no invoices exist', async () => {
       mockQuery.mockResolvedValueOnce({ rows: [] });
 
-      await adminController.getInvoices(mockRequest as Request, mockResponse as Response);
+      await adminController.getInvoices(mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: true,
@@ -858,7 +858,7 @@ describe('Admin Controller', () => {
     it('should order invoices by creation date descending', async () => {
       mockQuery.mockResolvedValueOnce({ rows: [] });
 
-      await adminController.getInvoices(mockRequest as Request, mockResponse as Response);
+      await adminController.getInvoices(mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(mockQuery.mock.calls[0][0]).toContain('ORDER BY i.created_at DESC');
     });
@@ -866,7 +866,7 @@ describe('Admin Controller', () => {
     it('should join with orders and users tables', async () => {
       mockQuery.mockResolvedValueOnce({ rows: [] });
 
-      await adminController.getInvoices(mockRequest as Request, mockResponse as Response);
+      await adminController.getInvoices(mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(mockQuery.mock.calls[0][0]).toContain('JOIN orders o ON i.order_id = o.id');
       expect(mockQuery.mock.calls[0][0]).toContain('JOIN users u ON o.customer_id = u.id');
@@ -876,7 +876,7 @@ describe('Admin Controller', () => {
       const consoleError = jest.spyOn(console, 'error').mockImplementation();
       mockQuery.mockRejectedValueOnce(new Error('Database error'));
 
-      await adminController.getInvoices(mockRequest as Request, mockResponse as Response);
+      await adminController.getInvoices(mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(mockResponse.status).toHaveBeenCalledWith(500);
       expect(mockResponse.json).toHaveBeenCalledWith({
@@ -917,7 +917,7 @@ describe('Admin Controller', () => {
           ]
         });
 
-      await adminController.generateInvoice(mockRequest as Request, mockResponse as Response);
+      await adminController.generateInvoice(mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: true,
@@ -958,7 +958,7 @@ describe('Admin Controller', () => {
           ]
         });
 
-      await adminController.generateInvoice(mockRequest as Request, mockResponse as Response);
+      await adminController.generateInvoice(mockRequest as Request, mockResponse as Response, mockNext);
 
       const response = (mockResponse.json as jest.Mock).mock.calls[0][0];
       expect(response.data.invoice_type).toBe('standard');
@@ -988,7 +988,7 @@ describe('Admin Controller', () => {
           ]
         });
 
-      await adminController.generateInvoice(mockRequest as Request, mockResponse as Response);
+      await adminController.generateInvoice(mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(mockQuery.mock.calls[2][1]).toContain('150.00');
     });
@@ -1017,7 +1017,7 @@ describe('Admin Controller', () => {
           ]
         });
 
-      await adminController.generateInvoice(mockRequest as Request, mockResponse as Response);
+      await adminController.generateInvoice(mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(mockQuery.mock.calls[2][1]).toContain('paid');
     });
@@ -1046,7 +1046,7 @@ describe('Admin Controller', () => {
           ]
         });
 
-      await adminController.generateInvoice(mockRequest as Request, mockResponse as Response);
+      await adminController.generateInvoice(mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(mockQuery.mock.calls[2][1]).toContain('pending');
     });
@@ -1075,7 +1075,7 @@ describe('Admin Controller', () => {
           ]
         });
 
-      await adminController.generateInvoice(mockRequest as Request, mockResponse as Response);
+      await adminController.generateInvoice(mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(mockQuery.mock.calls[2][1]).toContain(4);
     });
@@ -1083,7 +1083,7 @@ describe('Admin Controller', () => {
     it('should return 400 when order_id is missing', async () => {
       mockRequest.body = {};
 
-      await adminController.generateInvoice(mockRequest as Request, mockResponse as Response);
+      await adminController.generateInvoice(mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(mockResponse.status).toHaveBeenCalledWith(400);
       expect(mockResponse.json).toHaveBeenCalledWith({
@@ -1101,7 +1101,7 @@ describe('Admin Controller', () => {
         .mockResolvedValueOnce({ rows: [{ max_invoice_number: 0 }] })
         .mockResolvedValueOnce({ rows: [] });
 
-      await adminController.generateInvoice(mockRequest as Request, mockResponse as Response);
+      await adminController.generateInvoice(mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(mockResponse.status).toHaveBeenCalledWith(404);
       expect(mockResponse.json).toHaveBeenCalledWith({
@@ -1117,7 +1117,7 @@ describe('Admin Controller', () => {
       };
       mockQuery.mockRejectedValueOnce(new Error('Database error'));
 
-      await adminController.generateInvoice(mockRequest as Request, mockResponse as Response);
+      await adminController.generateInvoice(mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(mockResponse.status).toHaveBeenCalledWith(500);
       expect(mockResponse.json).toHaveBeenCalledWith({
@@ -1154,7 +1154,7 @@ describe('Admin Controller', () => {
           ]
         });
 
-      await adminController.generateInvoice(mockRequest as Request, mockResponse as Response);
+      await adminController.generateInvoice(mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(mockQuery.mock.calls[2][1][5]).toBeNull();
     });
@@ -1183,7 +1183,7 @@ describe('Admin Controller', () => {
           ]
         });
 
-      await adminController.generateInvoice(mockRequest as Request, mockResponse as Response);
+      await adminController.generateInvoice(mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(mockQuery.mock.calls[2][1][5]).toBeNull();
     });
@@ -1212,7 +1212,7 @@ describe('Admin Controller', () => {
           ]
         });
 
-      await adminController.generateInvoice(mockRequest as Request, mockResponse as Response);
+      await adminController.generateInvoice(mockRequest as Request, mockResponse as Response, mockNext);
 
       const response = (mockResponse.json as jest.Mock).mock.calls[0][0];
       expect(response.success).toBe(true);
@@ -1250,7 +1250,7 @@ describe('Admin Controller', () => {
         ]
       });
 
-      await adminController.getUsers(mockRequest as Request, mockResponse as Response);
+      await adminController.getUsers(mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: true,
@@ -1286,7 +1286,7 @@ describe('Admin Controller', () => {
     it('should return empty array when no users exist', async () => {
       mockQuery.mockResolvedValueOnce({ rows: [] });
 
-      await adminController.getUsers(mockRequest as Request, mockResponse as Response);
+      await adminController.getUsers(mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: true,
@@ -1297,7 +1297,7 @@ describe('Admin Controller', () => {
     it('should concatenate first_name and last_name', async () => {
       mockQuery.mockResolvedValueOnce({ rows: [] });
 
-      await adminController.getUsers(mockRequest as Request, mockResponse as Response);
+      await adminController.getUsers(mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(mockQuery.mock.calls[0][0]).toContain("first_name || ' ' || last_name as name");
     });
@@ -1305,7 +1305,7 @@ describe('Admin Controller', () => {
     it('should order users by creation date descending', async () => {
       mockQuery.mockResolvedValueOnce({ rows: [] });
 
-      await adminController.getUsers(mockRequest as Request, mockResponse as Response);
+      await adminController.getUsers(mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(mockQuery.mock.calls[0][0]).toContain('ORDER BY created_at DESC');
     });
@@ -1314,7 +1314,7 @@ describe('Admin Controller', () => {
       const consoleError = jest.spyOn(console, 'error').mockImplementation();
       mockQuery.mockRejectedValueOnce(new Error('Database error'));
 
-      await adminController.getUsers(mockRequest as Request, mockResponse as Response);
+      await adminController.getUsers(mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(mockResponse.status).toHaveBeenCalledWith(500);
       expect(mockResponse.json).toHaveBeenCalledWith({
@@ -1354,7 +1354,7 @@ describe('Admin Controller', () => {
         ]
       });
 
-      await adminController.getOrders(mockRequest as Request, mockResponse as Response);
+      await adminController.getOrders(mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: true,
@@ -1386,7 +1386,7 @@ describe('Admin Controller', () => {
     it('should return empty array when no orders exist', async () => {
       mockQuery.mockResolvedValueOnce({ rows: [] });
 
-      await adminController.getOrders(mockRequest as Request, mockResponse as Response);
+      await adminController.getOrders(mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: true,
@@ -1397,7 +1397,7 @@ describe('Admin Controller', () => {
     it('should join with users table', async () => {
       mockQuery.mockResolvedValueOnce({ rows: [] });
 
-      await adminController.getOrders(mockRequest as Request, mockResponse as Response);
+      await adminController.getOrders(mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(mockQuery.mock.calls[0][0]).toContain('JOIN users u ON o.customer_id = u.id');
     });
@@ -1405,7 +1405,7 @@ describe('Admin Controller', () => {
     it('should order orders by creation date descending', async () => {
       mockQuery.mockResolvedValueOnce({ rows: [] });
 
-      await adminController.getOrders(mockRequest as Request, mockResponse as Response);
+      await adminController.getOrders(mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(mockQuery.mock.calls[0][0]).toContain('ORDER BY o.created_at DESC');
     });
@@ -1422,7 +1422,7 @@ describe('Admin Controller', () => {
         ]
       });
 
-      await adminController.getOrders(mockRequest as Request, mockResponse as Response);
+      await adminController.getOrders(mockRequest as Request, mockResponse as Response, mockNext);
 
       const response = (mockResponse.json as jest.Mock).mock.calls[0][0];
       expect(response.data[0].restaurant_name).toBe('Multiple');
@@ -1432,7 +1432,7 @@ describe('Admin Controller', () => {
       const consoleError = jest.spyOn(console, 'error').mockImplementation();
       mockQuery.mockRejectedValueOnce(new Error('Database error'));
 
-      await adminController.getOrders(mockRequest as Request, mockResponse as Response);
+      await adminController.getOrders(mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(mockResponse.status).toHaveBeenCalledWith(500);
       expect(mockResponse.json).toHaveBeenCalledWith({
@@ -1466,7 +1466,7 @@ describe('Admin Controller', () => {
         ]
       });
 
-      await adminController.getOrderDetails(mockRequest as Request, mockResponse as Response);
+      await adminController.getOrderDetails(mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: true,
@@ -1490,7 +1490,7 @@ describe('Admin Controller', () => {
       mockRequest.params = { id: '999' };
       mockQuery.mockResolvedValueOnce({ rows: [] });
 
-      await adminController.getOrderDetails(mockRequest as Request, mockResponse as Response);
+      await adminController.getOrderDetails(mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(mockResponse.status).toHaveBeenCalledWith(404);
       expect(mockResponse.json).toHaveBeenCalledWith({
@@ -1503,7 +1503,7 @@ describe('Admin Controller', () => {
       mockRequest.params = { id: '123' };
       mockQuery.mockResolvedValueOnce({ rows: [] });
 
-      await adminController.getOrderDetails(mockRequest as Request, mockResponse as Response);
+      await adminController.getOrderDetails(mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(mockQuery.mock.calls[0][1]).toEqual(['123']);
     });
@@ -1512,7 +1512,7 @@ describe('Admin Controller', () => {
       mockRequest.params = { id: '123' };
       mockQuery.mockResolvedValueOnce({ rows: [] });
 
-      await adminController.getOrderDetails(mockRequest as Request, mockResponse as Response);
+      await adminController.getOrderDetails(mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(mockQuery.mock.calls[0][0]).toContain('JOIN users u ON o.customer_id = u.id');
     });
@@ -1531,7 +1531,7 @@ describe('Admin Controller', () => {
         ]
       });
 
-      await adminController.getOrderDetails(mockRequest as Request, mockResponse as Response);
+      await adminController.getOrderDetails(mockRequest as Request, mockResponse as Response, mockNext);
 
       const response = (mockResponse.json as jest.Mock).mock.calls[0][0];
       expect(response.data.restaurant_name).toBe('Multiple');
@@ -1542,7 +1542,7 @@ describe('Admin Controller', () => {
       mockRequest.params = { id: '123' };
       mockQuery.mockRejectedValueOnce(new Error('Database error'));
 
-      await adminController.getOrderDetails(mockRequest as Request, mockResponse as Response);
+      await adminController.getOrderDetails(mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(mockResponse.status).toHaveBeenCalledWith(500);
       expect(mockResponse.json).toHaveBeenCalledWith({

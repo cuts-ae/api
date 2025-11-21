@@ -1361,7 +1361,7 @@ describe('OrderController', () => {
       await OrderController.updateStatus(mockRequest as AuthRequest, mockResponse as Response);
 
       expect(mockResponse.json).toHaveBeenCalledWith({
-        success: true,
+        message: 'Order status updated successfully',
         order: expect.objectContaining({ status: OrderStatus.PICKED_UP })
       });
     });
