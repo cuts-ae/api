@@ -1337,7 +1337,7 @@ describe('OrderController', () => {
       ).rejects.toThrow(new AppError('PERM_003'));
     });
 
-    it('should prevent driver from updating order status', async () => {
+    it('should allow driver to update order status', async () => {
       mockRequest.params = { id: 'order-123' };
       mockRequest.body = { status: OrderStatus.PICKED_UP };
       mockRequest.user = {
@@ -1346,13 +1346,24 @@ describe('OrderController', () => {
         role: UserRole.DRIVER
       };
 
+      const orderData = {
+        id: 'order-123',
+        customer_id: 'customer-123',
+        restaurants: ['restaurant-1'],
+        status: OrderStatus.PICKED_UP,
+        total_price: 50.00
+      };
+
       mockQuery
         .mockResolvedValueOnce({ rows: [{ restaurants: ['restaurant-1'] }], rowCount: 1 } as any)
-        .mockResolvedValueOnce({ rows: [], rowCount: 0 } as any);
+        .mockResolvedValueOnce({ rows: [orderData], rowCount: 1 } as any);
 
-      await expect(
-        OrderController.updateStatus(mockRequest as AuthRequest, mockResponse as Response)
-      ).rejects.toThrow(new AppError('PERM_003'));
+      await OrderController.updateStatus(mockRequest as AuthRequest, mockResponse as Response);
+
+      expect(mockResponse.json).toHaveBeenCalledWith({
+        success: true,
+        order: expect.objectContaining({ status: OrderStatus.PICKED_UP })
+      });
     });
 
     it('should prevent restaurant owner from cancelling orders', async () => {

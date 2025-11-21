@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import * as adminController from '../../controllers/admin.controller';
 import pool from '../../config/database';
 
@@ -10,6 +10,7 @@ jest.mock('../../config/database', () => ({
 describe('Admin Controller', () => {
   let mockRequest: Partial<Request>;
   let mockResponse: Partial<Response>;
+  let mockNext: NextFunction;
   let mockQuery: jest.Mock;
 
   beforeEach(() => {
@@ -21,6 +22,7 @@ describe('Admin Controller', () => {
       status: jest.fn().mockReturnThis(),
       json: jest.fn().mockReturnThis(),
     };
+    mockNext = jest.fn();
     mockQuery = pool.query as jest.Mock;
     mockQuery.mockClear();
   });
@@ -52,7 +54,7 @@ describe('Admin Controller', () => {
           ]
         });
 
-      await adminController.getAnalytics(mockRequest as Request, mockResponse as Response);
+      await adminController.getAnalytics(mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: true,
@@ -86,7 +88,7 @@ describe('Admin Controller', () => {
         .mockResolvedValueOnce({ rows: [] })
         .mockResolvedValueOnce({ rows: [] });
 
-      await adminController.getAnalytics(mockRequest as Request, mockResponse as Response);
+      await adminController.getAnalytics(mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: true,
@@ -110,7 +112,7 @@ describe('Admin Controller', () => {
         .mockResolvedValueOnce({ rows: [] })
         .mockResolvedValueOnce({ rows: [] });
 
-      await adminController.getAnalytics(mockRequest as Request, mockResponse as Response);
+      await adminController.getAnalytics(mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(mockResponse.json).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -139,7 +141,7 @@ describe('Admin Controller', () => {
           ]
         });
 
-      await adminController.getAnalytics(mockRequest as Request, mockResponse as Response);
+      await adminController.getAnalytics(mockRequest as Request, mockResponse as Response, mockNext);
 
       const response = (mockResponse.json as jest.Mock).mock.calls[0][0];
       expect(response.data.totalRevenue).toBe('$1234.50');
@@ -151,7 +153,7 @@ describe('Admin Controller', () => {
       const consoleError = jest.spyOn(console, 'error').mockImplementation();
       mockQuery.mockRejectedValueOnce(new Error('Database connection failed'));
 
-      await adminController.getAnalytics(mockRequest as Request, mockResponse as Response);
+      await adminController.getAnalytics(mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(mockResponse.status).toHaveBeenCalledWith(500);
       expect(mockResponse.json).toHaveBeenCalledWith({
@@ -172,7 +174,7 @@ describe('Admin Controller', () => {
         .mockResolvedValueOnce({ rows: [] })
         .mockResolvedValueOnce({ rows: [] });
 
-      await adminController.getAnalytics(mockRequest as Request, mockResponse as Response);
+      await adminController.getAnalytics(mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(mockQuery.mock.calls[0][0]).toContain("status = 'delivered'");
     });
@@ -186,7 +188,7 @@ describe('Admin Controller', () => {
         .mockResolvedValueOnce({ rows: [] })
         .mockResolvedValueOnce({ rows: [] });
 
-      await adminController.getAnalytics(mockRequest as Request, mockResponse as Response);
+      await adminController.getAnalytics(mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(mockQuery.mock.calls[1][0]).toContain("'pending', 'preparing', 'ready', 'in_transit'");
     });
@@ -200,7 +202,7 @@ describe('Admin Controller', () => {
         .mockResolvedValueOnce({ rows: [] })
         .mockResolvedValueOnce({ rows: [] });
 
-      await adminController.getAnalytics(mockRequest as Request, mockResponse as Response);
+      await adminController.getAnalytics(mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(mockQuery.mock.calls[4][0]).toContain('LIMIT 5');
     });
@@ -214,7 +216,7 @@ describe('Admin Controller', () => {
         .mockResolvedValueOnce({ rows: [] })
         .mockResolvedValueOnce({ rows: [] });
 
-      await adminController.getAnalytics(mockRequest as Request, mockResponse as Response);
+      await adminController.getAnalytics(mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(mockQuery.mock.calls[5][0]).toContain('LIMIT 5');
     });
@@ -243,7 +245,7 @@ describe('Admin Controller', () => {
         ]
       });
 
-      await adminController.getRestaurants(mockRequest as Request, mockResponse as Response);
+      await adminController.getRestaurants(mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: true,
@@ -271,7 +273,7 @@ describe('Admin Controller', () => {
     it('should return empty array when no restaurants exist', async () => {
       mockQuery.mockResolvedValueOnce({ rows: [] });
 
-      await adminController.getRestaurants(mockRequest as Request, mockResponse as Response);
+      await adminController.getRestaurants(mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: true,
@@ -282,7 +284,7 @@ describe('Admin Controller', () => {
     it('should join with users table to get owner info', async () => {
       mockQuery.mockResolvedValueOnce({ rows: [] });
 
-      await adminController.getRestaurants(mockRequest as Request, mockResponse as Response);
+      await adminController.getRestaurants(mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(mockQuery.mock.calls[0][0]).toContain('JOIN users u ON r.owner_id = u.id');
     });
@@ -290,7 +292,7 @@ describe('Admin Controller', () => {
     it('should order restaurants by creation date descending', async () => {
       mockQuery.mockResolvedValueOnce({ rows: [] });
 
-      await adminController.getRestaurants(mockRequest as Request, mockResponse as Response);
+      await adminController.getRestaurants(mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(mockQuery.mock.calls[0][0]).toContain('ORDER BY r.created_at DESC');
     });
@@ -299,7 +301,7 @@ describe('Admin Controller', () => {
       const consoleError = jest.spyOn(console, 'error').mockImplementation();
       mockQuery.mockRejectedValueOnce(new Error('Database error'));
 
-      await adminController.getRestaurants(mockRequest as Request, mockResponse as Response);
+      await adminController.getRestaurants(mockRequest as Request, mockResponse as Response, mockNext);
 
       expect(mockResponse.status).toHaveBeenCalledWith(500);
       expect(mockResponse.json).toHaveBeenCalledWith({
