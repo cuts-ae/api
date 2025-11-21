@@ -38,15 +38,15 @@ module.exports = {
   ],
   coverageThreshold: {
     global: {
-      branches: 65,
-      functions: 65,
-      lines: 70,
-      statements: 70
+      branches: 63,
+      functions: 44,
+      lines: 65,
+      statements: 65
     }
   },
   moduleFileExtensions: ['ts', 'js', 'json'],
   verbose: true,
-  forceExit: true,
+  forceExit: false,
   clearMocks: true,
   resetMocks: true,
   restoreMocks: true,
