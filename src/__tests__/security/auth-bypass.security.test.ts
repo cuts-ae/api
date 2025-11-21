@@ -4,6 +4,7 @@ import { authenticate } from '../../middleware/auth';
 import { requireRole } from '../../middleware/rbac';
 import { UserRole } from '../../types';
 import jwt from 'jsonwebtoken';
+import { errorHandler } from '../../middleware/errorHandler';
 
 describe('Authentication Bypass Security Tests', () => {
   let app: Express;
@@ -22,6 +23,9 @@ describe('Authentication Bypass Security Tests', () => {
     app.get('/admin-only', authenticate, requireRole(UserRole.ADMIN), (req, res) => {
       res.json({ message: 'Admin resource accessed', user: (req as any).user });
     });
+
+    // Add error handler middleware (must be last)
+    app.use(errorHandler);
   });
 
   describe('Token Manipulation', () => {
@@ -30,7 +34,9 @@ describe('Authentication Bypass Security Tests', () => {
         .get('/protected')
         .expect(401);
 
-      expect(response.body.error).toMatch(/token|no token provided/i);
+      expect(response.body.code).toBe('AUTH_001');
+      expect(response.body.message).toBeDefined();
+      expect(response.body.success).toBe(false);
     });
 
     it('should reject requests with malformed authorization header', async () => {
@@ -39,7 +45,9 @@ describe('Authentication Bypass Security Tests', () => {
         .set('Authorization', 'InvalidFormat token123')
         .expect(401);
 
-      expect(response.body.error).toMatch(/token|no token provided/i);
+      expect(response.body.code).toBe('AUTH_001');
+      expect(response.body.message).toBeDefined();
+      expect(response.body.success).toBe(false);
     });
 
     it('should reject requests with Bearer but no token', async () => {
@@ -48,7 +56,10 @@ describe('Authentication Bypass Security Tests', () => {
         .set('Authorization', 'Bearer ')
         .expect(401);
 
-      expect(response.body.error).toMatch(/token|invalid token/i);
+      // Empty token after Bearer is treated as missing token
+      expect(response.body.code).toBe('AUTH_001');
+      expect(response.body.message).toBeDefined();
+      expect(response.body.success).toBe(false);
     });
 
     it('should reject requests with invalid JWT format', async () => {
@@ -57,7 +68,9 @@ describe('Authentication Bypass Security Tests', () => {
         .set('Authorization', 'Bearer not.a.valid.jwt.token')
         .expect(401);
 
-      expect(response.body.error).toMatch(/invalid token/i);
+      expect(response.body.code).toBe('AUTH_002');
+      expect(response.body.message).toBeDefined();
+      expect(response.body.success).toBe(false);
     });
 
     it('should reject requests with tampered JWT signature', async () => {
@@ -75,7 +88,9 @@ describe('Authentication Bypass Security Tests', () => {
         .set('Authorization', `Bearer ${tamperedToken}`)
         .expect(401);
 
-      expect(response.body.error).toMatch(/invalid token/i);
+      expect(response.body.code).toBe('AUTH_002');
+      expect(response.body.message).toBeDefined();
+      expect(response.body.success).toBe(false);
     });
 
     it('should reject requests with expired token', async () => {
@@ -90,7 +105,10 @@ describe('Authentication Bypass Security Tests', () => {
         .set('Authorization', `Bearer ${expiredToken}`)
         .expect(401);
 
-      expect(response.body.error).toMatch(/invalid token/i);
+      // Expired tokens may be caught as AUTH_002 or AUTH_003 depending on JWT library behavior
+      expect(['AUTH_002', 'AUTH_003']).toContain(response.body.code);
+      expect(response.body.message).toBeDefined();
+      expect(response.body.success).toBe(false);
     });
 
     it('should reject token signed with wrong secret', async () => {
@@ -105,7 +123,9 @@ describe('Authentication Bypass Security Tests', () => {
         .set('Authorization', `Bearer ${wrongSecretToken}`)
         .expect(401);
 
-      expect(response.body.error).toMatch(/invalid token/i);
+      expect(response.body.code).toBe('AUTH_002');
+      expect(response.body.message).toBeDefined();
+      expect(response.body.success).toBe(false);
     });
   });
 
@@ -122,7 +142,9 @@ describe('Authentication Bypass Security Tests', () => {
         .set('Authorization', `Bearer ${customerToken}`)
         .expect(403);
 
-      expect(response.body.error).toMatch(/forbidden|insufficient permissions/i);
+      expect(response.body.code).toBe('PERM_001');
+      expect(response.body.message).toBeDefined();
+      expect(response.body.success).toBe(false);
     });
 
     it('should reject driver trying to access admin endpoint', async () => {
@@ -137,7 +159,9 @@ describe('Authentication Bypass Security Tests', () => {
         .set('Authorization', `Bearer ${driverToken}`)
         .expect(403);
 
-      expect(response.body.error).toMatch(/forbidden|insufficient permissions/i);
+      expect(response.body.code).toBe('PERM_001');
+      expect(response.body.message).toBeDefined();
+      expect(response.body.success).toBe(false);
     });
 
     it('should reject restaurant owner trying to access admin endpoint', async () => {
@@ -152,7 +176,9 @@ describe('Authentication Bypass Security Tests', () => {
         .set('Authorization', `Bearer ${ownerToken}`)
         .expect(403);
 
-      expect(response.body.error).toMatch(/forbidden|insufficient permissions/i);
+      expect(response.body.code).toBe('PERM_001');
+      expect(response.body.message).toBeDefined();
+      expect(response.body.success).toBe(false);
     });
 
     it('should reject support staff trying to access admin endpoint', async () => {
@@ -167,7 +193,9 @@ describe('Authentication Bypass Security Tests', () => {
         .set('Authorization', `Bearer ${supportToken}`)
         .expect(403);
 
-      expect(response.body.error).toMatch(/forbidden|insufficient permissions/i);
+      expect(response.body.code).toBe('PERM_001');
+      expect(response.body.message).toBeDefined();
+      expect(response.body.success).toBe(false);
     });
   });
 
@@ -187,7 +215,9 @@ describe('Authentication Bypass Security Tests', () => {
         .set('Authorization', `Bearer ${unsignedToken}`)
         .expect(401);
 
-      expect(response.body.error).toMatch(/invalid token/i);
+      expect(response.body.code).toBe('AUTH_002');
+      expect(response.body.message).toBeDefined();
+      expect(response.body.success).toBe(false);
     });
 
     it('should reject token with missing signature', async () => {
@@ -205,7 +235,9 @@ describe('Authentication Bypass Security Tests', () => {
         .set('Authorization', `Bearer ${tokenWithoutSignature}`)
         .expect(401);
 
-      expect(response.body.error).toMatch(/invalid token/i);
+      expect(response.body.code).toBe('AUTH_002');
+      expect(response.body.message).toBeDefined();
+      expect(response.body.success).toBe(false);
     });
   });
 
@@ -247,7 +279,9 @@ describe('Authentication Bypass Security Tests', () => {
         .set('Authorization', `Bearer ${shortLivedToken}`)
         .expect(401);
 
-      expect(response.body.error).toMatch(/invalid token/i);
+      expect(['AUTH_002', 'AUTH_003']).toContain(response.body.code);
+      expect(response.body.message).toBeDefined();
+      expect(response.body.success).toBe(false);
     });
   });
 
@@ -272,7 +306,9 @@ describe('Authentication Bypass Security Tests', () => {
         .set('Authorization', `Bearer ${maliciousToken}`)
         .expect(403);
 
-      expect(response.body.error).toMatch(/forbidden|insufficient permissions/i);
+      expect(response.body.code).toBe('PERM_001');
+      expect(response.body.message).toBeDefined();
+      expect(response.body.success).toBe(false);
     });
 
     // Note: JWT library prevents __proto__ in payload, so this attack is already mitigated at the library level
@@ -290,7 +326,9 @@ describe('Authentication Bypass Security Tests', () => {
         .get(`/protected?token=${validToken}`)
         .expect(401);
 
-      expect(response.body.error).toMatch(/token|no token provided/i);
+      expect(response.body.code).toBe('AUTH_001');
+      expect(response.body.message).toBeDefined();
+      expect(response.body.success).toBe(false);
     });
 
     it('should reject authorization in request body', async () => {
@@ -305,7 +343,9 @@ describe('Authentication Bypass Security Tests', () => {
         .send({ token: validToken })
         .expect(401);
 
-      expect(response.body.error).toMatch(/token|no token provided/i);
+      expect(response.body.code).toBe('AUTH_001');
+      expect(response.body.message).toBeDefined();
+      expect(response.body.success).toBe(false);
     });
 
     it('should reject case variations of Bearer prefix', async () => {
@@ -320,7 +360,9 @@ describe('Authentication Bypass Security Tests', () => {
         .set('Authorization', `bearer ${validToken}`)
         .expect(401);
 
-      expect(response.body.error).toMatch(/token|no token provided/i);
+      expect(response.body.code).toBe('AUTH_001');
+      expect(response.body.message).toBeDefined();
+      expect(response.body.success).toBe(false);
     });
 
     it('should reject BEARER in uppercase', async () => {
@@ -335,7 +377,9 @@ describe('Authentication Bypass Security Tests', () => {
         .set('Authorization', `BEARER ${validToken}`)
         .expect(401);
 
-      expect(response.body.error).toMatch(/token|no token provided/i);
+      expect(response.body.code).toBe('AUTH_001');
+      expect(response.body.message).toBeDefined();
+      expect(response.body.success).toBe(false);
     });
   });
 
@@ -399,7 +443,9 @@ describe('Authentication Bypass Security Tests', () => {
         .set('Authorization', `Bearer ${longToken}`)
         .expect(401);
 
-      expect(response.body.error).toMatch(/invalid token/i);
+      expect(response.body.code).toBe('AUTH_002');
+      expect(response.body.message).toBeDefined();
+      expect(response.body.success).toBe(false);
     });
 
     it('should reject token with special characters', async () => {
@@ -408,7 +454,9 @@ describe('Authentication Bypass Security Tests', () => {
         .set('Authorization', 'Bearer <script>alert("xss")</script>')
         .expect(401);
 
-      expect(response.body.error).toMatch(/invalid token/i);
+      expect(response.body.code).toBe('AUTH_002');
+      expect(response.body.message).toBeDefined();
+      expect(response.body.success).toBe(false);
     });
 
     // Note: HTTP headers cannot contain null bytes - Node.js http module prevents this at the protocol level
@@ -419,7 +467,9 @@ describe('Authentication Bypass Security Tests', () => {
         .set('Authorization', 'Bearer')
         .expect(401);
 
-      expect(response.body.error).toMatch(/token|no token provided/i);
+      expect(response.body.code).toBe('AUTH_001');
+      expect(response.body.message).toBeDefined();
+      expect(response.body.success).toBe(false);
     });
   });
 });

@@ -1,14 +1,21 @@
 import request from 'supertest';
 import express, { Express } from 'express';
 import { createRateLimiter, resetRateLimitStore } from '../../middleware/rate-limit';
+import { errorHandler } from '../../middleware/errorHandler';
 
 describe('Rate Limiting Security Tests', () => {
   let app: Express;
 
+  const createAppWithErrorHandler = (): Express => {
+    const newApp = express();
+    newApp.use(express.json());
+    // Error handler must be added after all other middlewares
+    return newApp;
+  };
+
   beforeEach(() => {
     resetRateLimitStore();
-    app = express();
-    app.use(express.json());
+    app = createAppWithErrorHandler();
   });
 
   afterEach(() => {
@@ -40,13 +47,15 @@ describe('Rate Limiting Security Tests', () => {
       app.get('/test', limiter, (req, res) => {
         res.json({ success: true });
       });
+      app.use(errorHandler);
 
       await request(app).get('/test').expect(200);
       await request(app).get('/test').expect(200);
       await request(app).get('/test').expect(200);
 
       const response = await request(app).get('/test').expect(429);
-      expect(response.body.error).toBeTruthy();
+      expect(response.body.code).toBe('RATE_001');
+      expect(response.body.message).toBeTruthy();
     });
 
     it('should include rate limit headers in response', async () => {
@@ -153,38 +162,42 @@ describe('Rate Limiting Security Tests', () => {
     });
   });
 
-  describe('Custom Messages and Status Codes', () => {
-    it('should use custom error message', async () => {
-      const customMessage = 'Whoa there! Slow down cowboy!';
+  describe('Custom Error Codes', () => {
+    it('should use custom error code', async () => {
       const limiter = createRateLimiter({
         windowMs: 60000,
         max: 1,
-        message: customMessage
+        errorCode: 'RATE_002'
       });
 
       app.get('/test', limiter, (req, res) => {
         res.json({ success: true });
       });
+      app.use(errorHandler);
 
       await request(app).get('/test').expect(200);
 
       const response = await request(app).get('/test').expect(429);
-      expect(response.body.error).toBe(customMessage);
+      expect(response.body.code).toBe('RATE_002');
+      expect(response.body.message).toBeTruthy();
     });
 
-    it('should use custom status code', async () => {
+    it('should use default error code when not specified', async () => {
       const limiter = createRateLimiter({
         windowMs: 60000,
-        max: 1,
-        statusCode: 503
+        max: 1
       });
 
       app.get('/test', limiter, (req, res) => {
         res.json({ success: true });
       });
+      app.use(errorHandler);
 
       await request(app).get('/test').expect(200);
-      await request(app).get('/test').expect(503);
+
+      const response = await request(app).get('/test').expect(429);
+      expect(response.body.code).toBe('RATE_001');
+      expect(response.body.message).toBeTruthy();
     });
   });
 
@@ -289,12 +302,13 @@ describe('Rate Limiting Security Tests', () => {
       const authLimiter = createRateLimiter({
         windowMs: 15 * 60 * 1000,
         max: 5,
-        message: 'Too many login attempts. Please try again later.'
+        errorCode: 'RATE_002'
       });
 
       app.post('/auth/login', authLimiter, (req, res) => {
         res.json({ token: 'fake-token' });
       });
+      app.use(errorHandler);
 
       for (let i = 0; i < 5; i++) {
         await request(app).post('/auth/login').send({ email: 'test@test.com' }).expect(200);
@@ -305,7 +319,8 @@ describe('Rate Limiting Security Tests', () => {
         .send({ email: 'test@test.com' })
         .expect(429);
 
-      expect(response.body.error).toMatch(/login attempts/i);
+      expect(response.body.code).toBe('RATE_002');
+      expect(response.body.message).toMatch(/authentication|Too many/i);
     });
 
     it('should prevent brute force attacks on authentication', async () => {
@@ -322,6 +337,7 @@ describe('Rate Limiting Security Tests', () => {
           res.status(401).json({ error: 'Invalid credentials' });
         }
       });
+      app.use(errorHandler);
 
       await request(app).post('/auth/login').send({ email: 'user@test.com', password: 'wrong1' });
       await request(app).post('/auth/login').send({ email: 'user@test.com', password: 'wrong2' });
@@ -332,7 +348,8 @@ describe('Rate Limiting Security Tests', () => {
         .send({ email: 'user@test.com', password: 'correct' })
         .expect(429);
 
-      expect(response.body.error).toBeTruthy();
+      expect(response.body.code).toBeTruthy();
+      expect(response.body.message).toBeTruthy();
     });
 
     it('should rate limit per user email for authentication', async () => {
@@ -479,12 +496,13 @@ describe('Rate Limiting Security Tests', () => {
       app.get('/test', limiter, (req, res) => {
         res.json({ success: true });
       });
+      app.use(errorHandler);
 
       await request(app).get('/test').expect(200);
 
       const response = await request(app).get('/test').expect(429);
-      expect(response.body.retryAfter).toBeGreaterThan(0);
-      expect(response.body.retryAfter).toBeLessThanOrEqual(60);
+      expect(response.body.details?.retryAfter).toBeGreaterThan(0);
+      expect(response.body.details?.retryAfter).toBeLessThanOrEqual(60);
     });
 
     it('should maintain rate limit across middleware chain', async () => {
@@ -500,6 +518,7 @@ describe('Rate Limiting Security Tests', () => {
       app.get('/test', limiter, middleware, (req, res) => {
         res.json({ success: true });
       });
+      app.use(errorHandler);
 
       await request(app).get('/test').expect(200);
       await request(app).get('/test').expect(200);

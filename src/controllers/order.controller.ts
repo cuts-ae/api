@@ -29,7 +29,7 @@ export class OrderController {
     );
 
     if (menuResult.rows.length !== items.length) {
-      throw new AppError('One or more menu items not found', 400);
+      throw new AppError('ORD_010');
     }
 
     // Create lookup map
@@ -43,7 +43,7 @@ export class OrderController {
       const menuItem = menuItemMap.get(item.menu_item_id);
 
       if (!menuItem || !menuItem.is_available) {
-        throw new AppError(`Menu item ${item.menu_item_id} is not available`, 400);
+        throw new AppError('ORD_003', { menuItemId: item.menu_item_id });
       }
 
       restaurants.add(menuItem.restaurant_id);
@@ -51,7 +51,7 @@ export class OrderController {
     }
 
     if (restaurants.size > 2) {
-      throw new AppError('Cannot order from more than 2 restaurants', 400);
+      throw new AppError('ORD_002', { restaurantCount: restaurants.size });
     }
 
     // Calculate fees
@@ -171,7 +171,7 @@ export class OrderController {
     );
 
     if (orderResult.rows.length === 0) {
-      throw new AppError('Order not found', 404);
+      throw new AppError('ORD_001');
     }
 
     const order = orderResult.rows[0];
@@ -188,7 +188,7 @@ export class OrderController {
       );
 
       if (restaurantCheck.rows.length === 0) {
-        throw new AppError('Forbidden', 403);
+        throw new AppError('PERM_003', { orderId: id });
       }
     }
 
@@ -292,7 +292,7 @@ export class OrderController {
     );
 
     if (orderResult.rows.length === 0) {
-      throw new AppError('Order not found', 404);
+      throw new AppError('ORD_001');
     }
 
     const order = orderResult.rows[0];
@@ -305,7 +305,7 @@ export class OrderController {
       );
 
       if (restaurantCheck.rows.length === 0) {
-        throw new AppError('Forbidden', 403);
+        throw new AppError('PERM_003', { orderId: id });
       }
     }
 
@@ -333,7 +333,7 @@ export class OrderController {
     );
 
     if (orderResult.rows.length === 0) {
-      throw new AppError('Order not found', 404);
+      throw new AppError('ORD_001');
     }
 
     const order = orderResult.rows[0];
@@ -343,12 +343,12 @@ export class OrderController {
       order.customer_id !== req.user!.userId &&
       req.user!.role !== UserRole.ADMIN
     ) {
-      throw new AppError('Forbidden', 403);
+      throw new AppError('PERM_003', { orderId: id });
     }
 
     // Cannot cancel if already picked up or delivered
     if ([OrderStatus.PICKED_UP, OrderStatus.IN_TRANSIT, OrderStatus.DELIVERED].includes(order.status)) {
-      throw new AppError('Cannot cancel order at this stage', 400);
+      throw new AppError('ORD_004', { currentStatus: order.status });
     }
 
     const updateResult = await pool.query(

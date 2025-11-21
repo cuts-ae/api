@@ -59,8 +59,8 @@ describe('SQL Injection Security Tests', () => {
         expect(response.status).not.toBe(200);
         expect([400, 403, 429]).toContain(response.status);
 
-        if (response.body.error || response.body.message) {
-          const errorMessage = response.body.error || response.body.message;
+        if (response.body.message || response.body.code) {
+          const errorMessage = response.body.message || response.body.code;
           expect(errorMessage).not.toMatch(/syntax error/i);
           expect(errorMessage).not.toMatch(/SQL/i);
         }
@@ -192,9 +192,10 @@ describe('SQL Injection Security Tests', () => {
 
       expect([400, 403, 429]).toContain(response.status);
 
-      if (response.body.error) {
-        expect(response.body.error).not.toMatch(/SQL syntax/i);
-        expect(response.body.error).not.toMatch(/pg_query/i);
+      if (response.body.message || response.body.code) {
+        const errorMessage = response.body.message || response.body.code;
+        expect(errorMessage).not.toMatch(/SQL syntax/i);
+        expect(errorMessage).not.toMatch(/pg_query/i);
       }
     });
 
@@ -211,8 +212,9 @@ describe('SQL Injection Security Tests', () => {
 
       expect([200, 201, 400, 403, 409, 429]).toContain(response.status);
 
-      if (response.body.error) {
-        expect(response.body.error).not.toMatch(/syntax/i);
+      if (response.body.message || response.body.code) {
+        const errorMessage = response.body.message || response.body.code;
+        expect(errorMessage).not.toMatch(/syntax/i);
       }
     });
   });
@@ -311,11 +313,12 @@ describe('SQL Injection Security Tests', () => {
 
       expect(response.status).not.toBe(500);
 
-      if (response.body.error) {
-        expect(response.body.error).not.toMatch(/column/i);
-        expect(response.body.error).not.toMatch(/table/i);
-        expect(response.body.error).not.toMatch(/database/i);
-        expect(response.body.error).not.toMatch(/PostgreSQL/i);
+      if (response.body.message || response.body.code) {
+        const errorMessage = response.body.message || response.body.code;
+        expect(errorMessage).not.toMatch(/column/i);
+        expect(errorMessage).not.toMatch(/table/i);
+        expect(errorMessage).not.toMatch(/database/i);
+        expect(errorMessage).not.toMatch(/PostgreSQL/i);
       }
     });
 
@@ -323,11 +326,12 @@ describe('SQL Injection Security Tests', () => {
       const response = await request(app)
         .get('/api/restaurants/999999999');
 
-      if (response.body.error) {
-        expect(response.body.error).not.toMatch(/users/i);
-        expect(response.body.error).not.toMatch(/restaurants/i);
-        expect(response.body.error).not.toMatch(/FROM/i);
-        expect(response.body.error).not.toMatch(/WHERE/i);
+      if (response.body.message || response.body.code) {
+        const errorMessage = response.body.message || response.body.code;
+        expect(errorMessage).not.toMatch(/users/i);
+        expect(errorMessage).not.toMatch(/restaurants/i);
+        expect(errorMessage).not.toMatch(/FROM/i);
+        expect(errorMessage).not.toMatch(/WHERE/i);
       }
     });
   });

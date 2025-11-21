@@ -37,58 +37,64 @@ describe('Authentication Middleware', () => {
 
       authenticate(mockRequest as AuthRequest, mockResponse as Response, nextFunction);
 
-      expect(nextFunction).toHaveBeenCalled();
+      expect(nextFunction).toHaveBeenCalledWith();
       expect(mockRequest.user).toBeDefined();
       expect(mockRequest.user?.userId).toBe('123');
       expect(mockRequest.user?.email).toBe('test@cuts.ae');
       expect(mockRequest.user?.role).toBe(UserRole.CUSTOMER);
     });
 
-    it('should reject request without authorization header', () => {
+    it('should pass error to next() without authorization header', () => {
       authenticate(mockRequest as AuthRequest, mockResponse as Response, nextFunction);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(401);
-      expect(mockResponse.json).toHaveBeenCalledWith(
+      expect(nextFunction).toHaveBeenCalledWith(
         expect.objectContaining({
-          error: expect.stringContaining('No token provided')
+          code: 'AUTH_001',
+          statusCode: 401,
+          name: 'AuthenticationError'
         })
       );
-      expect(nextFunction).not.toHaveBeenCalled();
+      expect(mockResponse.status).not.toHaveBeenCalled();
+      expect(mockResponse.json).not.toHaveBeenCalled();
     });
 
-    it('should reject request with invalid token format', () => {
+    it('should pass error to next() with invalid token format', () => {
       mockRequest.headers = {
         authorization: 'InvalidFormat token'
       };
 
       authenticate(mockRequest as AuthRequest, mockResponse as Response, nextFunction);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(401);
-      expect(mockResponse.json).toHaveBeenCalledWith(
+      expect(nextFunction).toHaveBeenCalledWith(
         expect.objectContaining({
-          error: expect.stringContaining('No token provided')
+          code: 'AUTH_001',
+          statusCode: 401,
+          name: 'AuthenticationError'
         })
       );
-      expect(nextFunction).not.toHaveBeenCalled();
+      expect(mockResponse.status).not.toHaveBeenCalled();
+      expect(mockResponse.json).not.toHaveBeenCalled();
     });
 
-    it('should reject request with invalid token', () => {
+    it('should pass error to next() with invalid token', () => {
       mockRequest.headers = {
         authorization: 'Bearer invalid-token-here'
       };
 
       authenticate(mockRequest as AuthRequest, mockResponse as Response, nextFunction);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(401);
-      expect(mockResponse.json).toHaveBeenCalledWith(
+      expect(nextFunction).toHaveBeenCalledWith(
         expect.objectContaining({
-          error: expect.any(String)
+          code: 'AUTH_002',
+          statusCode: 401,
+          name: 'AuthenticationError'
         })
       );
-      expect(nextFunction).not.toHaveBeenCalled();
+      expect(mockResponse.status).not.toHaveBeenCalled();
+      expect(mockResponse.json).not.toHaveBeenCalled();
     });
 
-    it('should reject expired token', () => {
+    it('should pass error to next() for expired token', () => {
       const payload: JWTPayload = {
         userId: '123',
         email: 'test@cuts.ae',
@@ -102,19 +108,40 @@ describe('Authentication Middleware', () => {
 
       authenticate(mockRequest as AuthRequest, mockResponse as Response, nextFunction);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(401);
-      expect(nextFunction).not.toHaveBeenCalled();
+      expect(nextFunction).toHaveBeenCalledWith(
+        expect.objectContaining({
+          code: 'AUTH_003',
+          statusCode: 401,
+          name: 'AuthenticationError'
+        })
+      );
+      expect(mockResponse.status).not.toHaveBeenCalled();
+      expect(mockResponse.json).not.toHaveBeenCalled();
     });
 
-    it('should handle malformed JWT', () => {
+    it('should pass error to next() for malformed JWT signature', () => {
+      // Create a token with valid structure but signed with wrong secret
+      const payload: JWTPayload = {
+        userId: '123',
+        email: 'test@cuts.ae',
+        role: UserRole.CUSTOMER
+      };
+      const token = jwt.sign(payload, 'wrong-secret');
       mockRequest.headers = {
-        authorization: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.malformed.signature'
+        authorization: `Bearer ${token}`
       };
 
       authenticate(mockRequest as AuthRequest, mockResponse as Response, nextFunction);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(401);
-      expect(nextFunction).not.toHaveBeenCalled();
+      expect(nextFunction).toHaveBeenCalledWith(
+        expect.objectContaining({
+          code: 'AUTH_002',
+          statusCode: 401,
+          name: 'AuthenticationError'
+        })
+      );
+      expect(mockResponse.status).not.toHaveBeenCalled();
+      expect(mockResponse.json).not.toHaveBeenCalled();
     });
   });
 
@@ -131,7 +158,7 @@ describe('Authentication Middleware', () => {
       const middleware = authorize(UserRole.CUSTOMER);
       middleware(mockRequest as AuthRequest, mockResponse as Response, nextFunction);
 
-      expect(nextFunction).toHaveBeenCalled();
+      expect(nextFunction).toHaveBeenCalledWith();
       expect(mockResponse.status).not.toHaveBeenCalled();
     });
 
@@ -139,35 +166,43 @@ describe('Authentication Middleware', () => {
       const middleware = authorize(UserRole.CUSTOMER, UserRole.ADMIN);
       middleware(mockRequest as AuthRequest, mockResponse as Response, nextFunction);
 
-      expect(nextFunction).toHaveBeenCalled();
+      expect(nextFunction).toHaveBeenCalledWith();
       expect(mockResponse.status).not.toHaveBeenCalled();
     });
 
-    it('should deny access for unauthorized role', () => {
+    it('should pass error to next() for unauthorized role', () => {
       const middleware = authorize(UserRole.RESTAURANT_OWNER);
       middleware(mockRequest as AuthRequest, mockResponse as Response, nextFunction);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(403);
-      expect(mockResponse.json).toHaveBeenCalledWith(
+      expect(nextFunction).toHaveBeenCalledWith(
         expect.objectContaining({
-          error: 'Forbidden'
+          code: 'PERM_001',
+          statusCode: 403,
+          name: 'AuthorizationError',
+          details: expect.objectContaining({
+            userRole: UserRole.CUSTOMER,
+            requiredRoles: [UserRole.RESTAURANT_OWNER]
+          })
         })
       );
-      expect(nextFunction).not.toHaveBeenCalled();
+      expect(mockResponse.status).not.toHaveBeenCalled();
+      expect(mockResponse.json).not.toHaveBeenCalled();
     });
 
-    it('should deny access when user is not set', () => {
+    it('should pass error to next() when user is not set', () => {
       mockRequest.user = undefined;
       const middleware = authorize(UserRole.CUSTOMER);
       middleware(mockRequest as AuthRequest, mockResponse as Response, nextFunction);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(401);
-      expect(mockResponse.json).toHaveBeenCalledWith(
+      expect(nextFunction).toHaveBeenCalledWith(
         expect.objectContaining({
-          error: 'Unauthorized'
+          code: 'AUTH_007',
+          statusCode: 401,
+          name: 'AuthenticationError'
         })
       );
-      expect(nextFunction).not.toHaveBeenCalled();
+      expect(mockResponse.status).not.toHaveBeenCalled();
+      expect(mockResponse.json).not.toHaveBeenCalled();
     });
 
     it('should allow admin access', () => {
@@ -175,7 +210,7 @@ describe('Authentication Middleware', () => {
       const middleware = authorize(UserRole.ADMIN);
       middleware(mockRequest as AuthRequest, mockResponse as Response, nextFunction);
 
-      expect(nextFunction).toHaveBeenCalled();
+      expect(nextFunction).toHaveBeenCalledWith();
     });
 
     it('should allow restaurant owner access', () => {
@@ -183,7 +218,7 @@ describe('Authentication Middleware', () => {
       const middleware = authorize(UserRole.RESTAURANT_OWNER);
       middleware(mockRequest as AuthRequest, mockResponse as Response, nextFunction);
 
-      expect(nextFunction).toHaveBeenCalled();
+      expect(nextFunction).toHaveBeenCalledWith();
     });
 
     it('should allow driver access', () => {
@@ -191,7 +226,7 @@ describe('Authentication Middleware', () => {
       const middleware = authorize(UserRole.DRIVER);
       middleware(mockRequest as AuthRequest, mockResponse as Response, nextFunction);
 
-      expect(nextFunction).toHaveBeenCalled();
+      expect(nextFunction).toHaveBeenCalledWith();
     });
   });
 });
@@ -229,11 +264,11 @@ describe('Validation Middleware', () => {
       const middleware = validate(schema);
       await middleware(mockRequest as Request, mockResponse as Response, nextFunction);
 
-      expect(nextFunction).toHaveBeenCalled();
+      expect(nextFunction).toHaveBeenCalledWith();
       expect(mockResponse.status).not.toHaveBeenCalled();
     });
 
-    it('should reject invalid body data', async () => {
+    it('should pass validation error to next() for invalid body data', async () => {
       const schema = z.object({
         name: z.string(),
         age: z.number().min(0)
@@ -247,16 +282,19 @@ describe('Validation Middleware', () => {
       const middleware = validate(schema);
       await middleware(mockRequest as Request, mockResponse as Response, nextFunction);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(400);
-      expect(mockResponse.json).toHaveBeenCalledWith(
+      expect(nextFunction).toHaveBeenCalledWith(
         expect.objectContaining({
-          error: expect.any(String)
+          code: 'VAL_001',
+          statusCode: 400,
+          name: 'ValidationError',
+          details: expect.any(Array)
         })
       );
-      expect(nextFunction).not.toHaveBeenCalled();
+      expect(mockResponse.status).not.toHaveBeenCalled();
+      expect(mockResponse.json).not.toHaveBeenCalled();
     });
 
-    it('should reject missing required fields', async () => {
+    it('should pass validation error to next() for missing required fields', async () => {
       const schema = z.object({
         name: z.string(),
         email: z.string().email(),
@@ -271,11 +309,18 @@ describe('Validation Middleware', () => {
       const middleware = validate(schema);
       await middleware(mockRequest as Request, mockResponse as Response, nextFunction);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(400);
-      expect(nextFunction).not.toHaveBeenCalled();
+      expect(nextFunction).toHaveBeenCalledWith(
+        expect.objectContaining({
+          code: 'VAL_001',
+          statusCode: 400,
+          name: 'ValidationError'
+        })
+      );
+      expect(mockResponse.status).not.toHaveBeenCalled();
+      expect(mockResponse.json).not.toHaveBeenCalled();
     });
 
-    it('should validate email format', async () => {
+    it('should pass validation error to next() for invalid email format', async () => {
       const schema = z.object({
         email: z.string().email()
       });
@@ -287,8 +332,15 @@ describe('Validation Middleware', () => {
       const middleware = validate(schema);
       await middleware(mockRequest as Request, mockResponse as Response, nextFunction);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(400);
-      expect(nextFunction).not.toHaveBeenCalled();
+      expect(nextFunction).toHaveBeenCalledWith(
+        expect.objectContaining({
+          code: 'VAL_001',
+          statusCode: 400,
+          name: 'ValidationError'
+        })
+      );
+      expect(mockResponse.status).not.toHaveBeenCalled();
+      expect(mockResponse.json).not.toHaveBeenCalled();
     });
 
     it('should validate nested objects', async () => {
@@ -315,7 +367,7 @@ describe('Validation Middleware', () => {
       const middleware = validate(schema);
       await middleware(mockRequest as Request, mockResponse as Response, nextFunction);
 
-      expect(nextFunction).toHaveBeenCalled();
+      expect(nextFunction).toHaveBeenCalledWith();
     });
 
     it('should validate arrays', async () => {
@@ -336,10 +388,10 @@ describe('Validation Middleware', () => {
       const middleware = validate(schema);
       await middleware(mockRequest as Request, mockResponse as Response, nextFunction);
 
-      expect(nextFunction).toHaveBeenCalled();
+      expect(nextFunction).toHaveBeenCalledWith();
     });
 
-    it('should reject invalid array items', async () => {
+    it('should pass validation error to next() for invalid array items', async () => {
       const schema = z.object({
         items: z.array(z.object({
           id: z.string(),
@@ -357,8 +409,15 @@ describe('Validation Middleware', () => {
       const middleware = validate(schema);
       await middleware(mockRequest as Request, mockResponse as Response, nextFunction);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(400);
-      expect(nextFunction).not.toHaveBeenCalled();
+      expect(nextFunction).toHaveBeenCalledWith(
+        expect.objectContaining({
+          code: 'VAL_001',
+          statusCode: 400,
+          name: 'ValidationError'
+        })
+      );
+      expect(mockResponse.status).not.toHaveBeenCalled();
+      expect(mockResponse.json).not.toHaveBeenCalled();
     });
 
     it('should validate optional fields', async () => {
@@ -375,10 +434,10 @@ describe('Validation Middleware', () => {
       const middleware = validate(schema);
       await middleware(mockRequest as Request, mockResponse as Response, nextFunction);
 
-      expect(nextFunction).toHaveBeenCalled();
+      expect(nextFunction).toHaveBeenCalledWith();
     });
 
-    it('should validate enum values', async () => {
+    it('should pass validation error to next() for invalid enum values', async () => {
       enum Status {
         ACTIVE = 'active',
         INACTIVE = 'inactive'
@@ -395,8 +454,15 @@ describe('Validation Middleware', () => {
       const middleware = validate(schema);
       await middleware(mockRequest as Request, mockResponse as Response, nextFunction);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(400);
-      expect(nextFunction).not.toHaveBeenCalled();
+      expect(nextFunction).toHaveBeenCalledWith(
+        expect.objectContaining({
+          code: 'VAL_001',
+          statusCode: 400,
+          name: 'ValidationError'
+        })
+      );
+      expect(mockResponse.status).not.toHaveBeenCalled();
+      expect(mockResponse.json).not.toHaveBeenCalled();
     });
   });
 });
@@ -423,62 +489,66 @@ describe('Error Handler Middleware', () => {
     expect(mockResponse.status).toHaveBeenCalledWith(500);
     expect(mockResponse.json).toHaveBeenCalledWith(
       expect.objectContaining({
-        error: 'Internal server error'
+        message: 'Internal server error'
       })
     );
   });
 
   it('should handle AppError with status code', () => {
-    const error = new AppError('Not found', 404);
+    const error = new AppError('SYS_004');
 
     errorHandler(error, mockRequest as Request, mockResponse as Response, nextFunction);
 
     expect(mockResponse.status).toHaveBeenCalledWith(404);
     expect(mockResponse.json).toHaveBeenCalledWith(
       expect.objectContaining({
-        error: 'Not found',
+        message: expect.any(String),
+        code: expect.any(String),
         statusCode: 404
       })
     );
   });
 
   it('should handle validation errors with AppError', () => {
-    const error = new AppError('Validation failed', 400);
+    const error = new AppError('VAL_001');
 
     errorHandler(error, mockRequest as Request, mockResponse as Response, nextFunction);
 
     expect(mockResponse.status).toHaveBeenCalledWith(400);
     expect(mockResponse.json).toHaveBeenCalledWith(
       expect.objectContaining({
-        error: 'Validation failed',
+        message: expect.any(String),
+        code: expect.any(String),
         statusCode: 400
       })
     );
   });
 
   it('should handle authentication errors with AppError', () => {
-    const error = new AppError('Unauthorized', 401);
+    const error = new AppError('AUTH_002');
 
     errorHandler(error, mockRequest as Request, mockResponse as Response, nextFunction);
 
     expect(mockResponse.status).toHaveBeenCalledWith(401);
     expect(mockResponse.json).toHaveBeenCalledWith(
       expect.objectContaining({
-        error: 'Unauthorized',
+        message: expect.any(String),
+        code: expect.any(String),
         statusCode: 401
       })
     );
   });
 
   it('should handle authorization errors with AppError', () => {
-    const error = new AppError('Forbidden', 403);
+    const error = new AppError('PERM_001');
 
     errorHandler(error, mockRequest as Request, mockResponse as Response, nextFunction);
 
     expect(mockResponse.status).toHaveBeenCalledWith(403);
     expect(mockResponse.json).toHaveBeenCalledWith(
       expect.objectContaining({
-        error: 'Forbidden',
+        message: expect.any(String),
+        code: expect.any(String),
         statusCode: 403
       })
     );
@@ -492,20 +562,21 @@ describe('Error Handler Middleware', () => {
     expect(mockResponse.status).toHaveBeenCalledWith(500);
     expect(mockResponse.json).toHaveBeenCalledWith(
       expect.objectContaining({
-        error: 'Internal server error'
+        message: 'Internal server error'
       })
     );
   });
 
-  it('should handle AppError with custom message', () => {
-    const error = new AppError('Database connection failed', 500);
+  it('should handle AppError with error code', () => {
+    const error = new AppError('DB_002');
 
     errorHandler(error, mockRequest as Request, mockResponse as Response, nextFunction);
 
     expect(mockResponse.status).toHaveBeenCalledWith(500);
     expect(mockResponse.json).toHaveBeenCalledWith(
       expect.objectContaining({
-        error: 'Database connection failed',
+        message: expect.any(String),
+        code: expect.any(String),
         statusCode: 500
       })
     );
@@ -520,7 +591,8 @@ describe('Error Handler Middleware', () => {
     expect(mockResponse.status).toHaveBeenCalledWith(400);
     expect(mockResponse.json).toHaveBeenCalledWith(
       expect.objectContaining({
-        error: 'Validation error'
+        message: expect.any(String),
+        code: 'VAL_001'
       })
     );
   });

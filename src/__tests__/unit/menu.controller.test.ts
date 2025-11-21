@@ -323,7 +323,7 @@ describe('MenuController', () => {
           mockRequest as AuthRequest,
           mockResponse as Response
         )
-      ).rejects.toThrow(new AppError('Restaurant not found', 404));
+      ).rejects.toThrow(new AppError('REST_001'));
     });
 
     it('should throw 403 when user is not the owner and not admin', async () => {
@@ -341,7 +341,7 @@ describe('MenuController', () => {
           mockRequest as AuthRequest,
           mockResponse as Response
         )
-      ).rejects.toThrow(new AppError('Forbidden', 403));
+      ).rejects.toThrow(new AppError('REST_006'));
     });
 
     it('should default is_available to true when not provided', async () => {
@@ -521,7 +521,7 @@ describe('MenuController', () => {
           mockRequest as AuthRequest,
           mockResponse as Response
         )
-      ).rejects.toThrow(new AppError('Menu item not found', 404));
+      ).rejects.toThrow(new AppError('MENU_001'));
     });
 
     it('should throw 403 when user is not owner and not admin', async () => {
@@ -540,7 +540,7 @@ describe('MenuController', () => {
           mockRequest as AuthRequest,
           mockResponse as Response
         )
-      ).rejects.toThrow(new AppError('Forbidden', 403));
+      ).rejects.toThrow(new AppError('REST_006'));
     });
 
     it('should update only whitelisted fields', async () => {
@@ -594,7 +594,7 @@ describe('MenuController', () => {
           mockRequest as AuthRequest,
           mockResponse as Response
         )
-      ).rejects.toThrow(new AppError('No valid fields to update', 400));
+      ).rejects.toThrow(new AppError('VAL_001'));
     });
 
     it('should update single field', async () => {
@@ -803,7 +803,7 @@ describe('MenuController', () => {
           mockRequest as AuthRequest,
           mockResponse as Response
         )
-      ).rejects.toThrow(new AppError('Menu item not found', 404));
+      ).rejects.toThrow(new AppError('MENU_001'));
     });
 
     it('should throw 403 when user is not owner and not admin', async () => {
@@ -818,7 +818,7 @@ describe('MenuController', () => {
           mockRequest as AuthRequest,
           mockResponse as Response
         )
-      ).rejects.toThrow(new AppError('Forbidden', 403));
+      ).rejects.toThrow(new AppError('REST_006'));
     });
 
     it('should handle database error during deletion', async () => {
@@ -921,7 +921,7 @@ describe('MenuController', () => {
           mockRequest as AuthRequest,
           mockResponse as Response
         )
-      ).rejects.toThrow(new AppError('Menu item not found', 404));
+      ).rejects.toThrow(new AppError('MENU_001'));
     });
 
     it('should throw 403 when user is not owner and not admin', async () => {
@@ -936,7 +936,7 @@ describe('MenuController', () => {
           mockRequest as AuthRequest,
           mockResponse as Response
         )
-      ).rejects.toThrow(new AppError('Forbidden', 403));
+      ).rejects.toThrow(new AppError('REST_006'));
     });
 
     it('should update updated_at timestamp', async () => {
@@ -1092,7 +1092,7 @@ describe('MenuController', () => {
           mockRequest as AuthRequest,
           mockResponse as Response
         )
-      ).rejects.toThrow(new AppError('Menu item not found', 404));
+      ).rejects.toThrow(new AppError('MENU_001'));
     });
 
     it('should throw 403 when user is not owner and not admin', async () => {
@@ -1107,7 +1107,7 @@ describe('MenuController', () => {
           mockRequest as AuthRequest,
           mockResponse as Response
         )
-      ).rejects.toThrow(new AppError('Forbidden', 403));
+      ).rejects.toThrow(new AppError('REST_006'));
     });
 
     it('should handle zero values for nutritional data', async () => {
@@ -1385,7 +1385,7 @@ describe('MenuController', () => {
             mockRequest as AuthRequest,
             mockResponse as Response
           )
-        ).rejects.toThrow(new AppError('Forbidden', 403));
+        ).rejects.toThrow(new AppError('REST_006'));
       });
 
       it('should handle support role trying to update menu item', async () => {
@@ -1402,7 +1402,7 @@ describe('MenuController', () => {
             mockRequest as AuthRequest,
             mockResponse as Response
           )
-        ).rejects.toThrow(new AppError('Forbidden', 403));
+        ).rejects.toThrow(new AppError('REST_006'));
       });
     });
 
@@ -1460,7 +1460,7 @@ describe('MenuController', () => {
             mockRequest as AuthRequest,
             mockResponse as Response
           )
-        ).rejects.toThrow(new AppError('No valid fields to update', 400));
+        ).rejects.toThrow(new AppError('VAL_001'));
       });
 
       it('should handle null values in body', async () => {

@@ -1,0 +1,193 @@
+config:
+  target: "http://localhost:45000"
+  phases:
+    # Warm-up: 10 users/sec for 2 minutes
+    - duration: 120
+      arrivalRate: 10
+      name: "Warm-up"
+    # Ramp to sustained load: 10 to 50 users/sec over 3 minutes
+    - duration: 180
+      arrivalRate: 10
+      rampTo: 50
+      name: "Ramp to sustained load"
+    # Extended sustained load: 50 users/sec for 30 minutes
+    - duration: 1800
+      arrivalRate: 50
+      name: "Endurance - 30 minutes sustained load"
+    # Cool down: 50 to 10 users/sec over 2 minutes
+    - duration: 120
+      arrivalRate: 50
+      rampTo: 10
+      name: "Cool down"
+  processor: "./test-helpers.js"
+  variables:
+    testEmail: "endurancetest@example.com"
+    testPassword: "EnduranceTest123!"
+  http:
+    timeout: 10
+  defaults:
+    headers:
+      Content-Type: "application/json"
+  # Strict thresholds for endurance - should maintain performance
+  ensure:
+    maxErrorRate: 0.5    # Max 0.5% error rate during sustained load
+    p95: 400             # 95th percentile < 400ms
+    p99: 800             # 99th percentile < 800ms
+  plugins:
+    metrics-by-endpoint:
+      stripQueryString: true
+    expect:
+      outputFormat: "silent"
+    # Publish metrics for monitoring
+    publish-metrics:
+      - type: statsd
+        prefix: "artillery.endurance"
+
+before:
+  flow:
+    - log: "Starting endurance test - 50 users/sec for 30 minutes"
+    - log: "This test checks for memory leaks and performance degradation"
+
+scenarios:
+  # Realistic user journey with think times
+  - name: "Endurance - Complete user journey"
+    weight: 40
+    flow:
+      # Browse homepage
+      - get:
+          url: "/"
+          expect:
+            - statusCode: 200
+
+      - think: 2
+
+      # Browse restaurants
+      - get:
+          url: "/api/v1/restaurants"
+          expect:
+            - statusCode: 200
+          capture:
+            - json: "$[0].id"
+              as: "restaurantId"
+
+      - think: 3
+
+      # View restaurant details
+      - get:
+          url: "/api/v1/restaurants/{{ restaurantId }}"
+          ifTrue: "restaurantId"
+
+      - think: 2
+
+      # Browse menu
+      - get:
+          url: "/api/v1/menu-items"
+          expect:
+            - statusCode: 200
+
+      - think: 5
+
+      # View categories
+      - get:
+          url: "/api/v1/menu-categories"
+          expect:
+            - statusCode: 200
+
+      - think: 2
+
+  - name: "Endurance - Authenticated user session"
+    weight: 30
+    flow:
+      # Login
+      - post:
+          url: "/api/v1/auth/login"
+          json:
+            email: "endurance-{{ $randomNumber(1, 50) }}@example.com"
+            password: "{{ testPassword }}"
+          capture:
+            - json: "$.token"
+              as: "authToken"
+          expect:
+            - statusCode:
+                - 200
+                - 401
+
+      - think: 1
+
+      # Check orders
+      - get:
+          url: "/api/v1/orders"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          ifTrue: "authToken"
+
+      - think: 3
+
+      # Browse restaurants
+      - get:
+          url: "/api/v1/restaurants"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          ifTrue: "authToken"
+
+      - think: 2
+
+      # Browse menu
+      - get:
+          url: "/api/v1/menu-items"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          ifTrue: "authToken"
+
+      - think: 4
+
+  - name: "Endurance - Menu browsing"
+    weight: 20
+    flow:
+      - get:
+          url: "/api/v1/menu-items"
+          expect:
+            - statusCode: 200
+          capture:
+            - json: "$[0].id"
+              as: "menuItemId"
+
+      - think: 2
+
+      - get:
+          url: "/api/v1/menu-categories"
+          expect:
+            - statusCode: 200
+
+      - think: 3
+
+      - get:
+          url: "/api/v1/menu-items/{{ menuItemId }}"
+          ifTrue: "menuItemId"
+
+      - think: 2
+
+  - name: "Endurance - Health monitoring"
+    weight: 10
+    flow:
+      - get:
+          url: "/health"
+          expect:
+            - statusCode: 200
+            - hasProperty: status
+
+      - think: 10
+
+      - get:
+          url: "/"
+          expect:
+            - statusCode: 200
+
+after:
+  flow:
+    - log: "Endurance test completed"
+    - log: "Check for:"
+    - log: "  - Memory leaks (increasing memory usage over time)"
+    - log: "  - Performance degradation (increasing response times)"
+    - log: "  - Connection pool issues"
+    - log: "  - Database connection leaks"

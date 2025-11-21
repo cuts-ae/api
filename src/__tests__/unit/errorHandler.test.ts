@@ -93,15 +93,17 @@ describe('Error Handler Middleware', () => {
        * Test: AppError creates error with correct properties
        */
       test('should create AppError with correct properties', () => {
-        const error = new AppError('Test error', 400);
+        const error = new AppError('VAL_001');
 
         expect(error).toBeInstanceOf(Error);
         expect(error).toBeInstanceOf(AppError);
-        expect(error.message).toBe('Test error');
+        expect(error.message).toBe('Request validation failed');
+        expect(error.code).toBe('VAL_001');
         expect(error.statusCode).toBe(400);
         expect(error.isOperational).toBe(true);
         expect(error.details).toBeUndefined();
         expect(error.stack).toBeDefined();
+        expect(error.suggestedAction).toBe('Please check the request format and try again');
       });
 
       /**
@@ -109,7 +111,7 @@ describe('Error Handler Middleware', () => {
        */
       test('should accept optional details', () => {
         const details = { field: 'email', issue: 'invalid format' };
-        const error = new AppError('Validation failed', 400, details);
+        const error = new AppError('VAL_001', details);
 
         expect(error.details).toEqual(details);
       });
@@ -118,10 +120,10 @@ describe('Error Handler Middleware', () => {
        * Test: AppError captures stack trace
        */
       test('should capture stack trace', () => {
-        const error = new AppError('Test error', 400);
+        const error = new AppError('VAL_001');
 
         expect(error.stack).toBeDefined();
-        expect(error.stack).toContain('Test error');
+        expect(error.stack).toContain('Request validation failed');
       });
     });
 
@@ -130,13 +132,15 @@ describe('Error Handler Middleware', () => {
        * Test: ValidationError creates 400 error
        */
       test('should create ValidationError with 400 status', () => {
-        const error = new ValidationError('Invalid input');
+        const error = new ValidationError();
 
         expect(error).toBeInstanceOf(AppError);
         expect(error.name).toBe('ValidationError');
-        expect(error.message).toBe('Invalid input');
+        expect(error.message).toBe('Request validation failed');
+        expect(error.code).toBe('VAL_001');
         expect(error.statusCode).toBe(400);
         expect(error.isOperational).toBe(true);
+        expect(error.suggestedAction).toBe('Please check the request format and try again');
       });
 
       /**
@@ -147,7 +151,7 @@ describe('Error Handler Middleware', () => {
           { field: 'email', message: 'Invalid email' },
           { field: 'password', message: 'Too short' },
         ];
-        const error = new ValidationError('Validation failed', details);
+        const error = new ValidationError(details);
 
         expect(error.details).toEqual(details);
       });
@@ -162,18 +166,22 @@ describe('Error Handler Middleware', () => {
 
         expect(error).toBeInstanceOf(AppError);
         expect(error.name).toBe('AuthenticationError');
-        expect(error.message).toBe('Authentication failed');
+        expect(error.message).toBe('Invalid authentication token');
+        expect(error.code).toBe('AUTH_002');
         expect(error.statusCode).toBe(401);
         expect(error.isOperational).toBe(true);
+        expect(error.suggestedAction).toBe('Please log in again to obtain a new authentication token');
       });
 
       /**
-       * Test: AuthenticationError accepts custom message
+       * Test: AuthenticationError accepts custom error code
        */
-      test('should accept custom message', () => {
-        const error = new AuthenticationError('Invalid credentials');
+      test('should accept custom error code', () => {
+        const error = new AuthenticationError('AUTH_004');
 
         expect(error.message).toBe('Invalid credentials');
+        expect(error.code).toBe('AUTH_004');
+        expect(error.suggestedAction).toBe('Please check your email and password and try again');
       });
     });
 
@@ -186,18 +194,22 @@ describe('Error Handler Middleware', () => {
 
         expect(error).toBeInstanceOf(AppError);
         expect(error.name).toBe('AuthorizationError');
-        expect(error.message).toBe('Insufficient permissions');
+        expect(error.message).toBe('Insufficient permissions to access this resource');
+        expect(error.code).toBe('PERM_001');
         expect(error.statusCode).toBe(403);
         expect(error.isOperational).toBe(true);
+        expect(error.suggestedAction).toBe('Contact your administrator to request appropriate permissions');
       });
 
       /**
-       * Test: AuthorizationError accepts custom message
+       * Test: AuthorizationError accepts custom error code
        */
-      test('should accept custom message', () => {
-        const error = new AuthorizationError('Admin access required');
+      test('should accept custom error code', () => {
+        const error = new AuthorizationError('PERM_004');
 
         expect(error.message).toBe('Admin access required');
+        expect(error.code).toBe('PERM_004');
+        expect(error.suggestedAction).toBe('This action requires administrator privileges');
       });
     });
 
@@ -211,17 +223,21 @@ describe('Error Handler Middleware', () => {
         expect(error).toBeInstanceOf(AppError);
         expect(error.name).toBe('NotFoundError');
         expect(error.message).toBe('Resource not found');
+        expect(error.code).toBe('SYS_004');
         expect(error.statusCode).toBe(404);
         expect(error.isOperational).toBe(true);
+        expect(error.suggestedAction).toBe('The requested resource was not found');
       });
 
       /**
-       * Test: NotFoundError accepts resource name
+       * Test: NotFoundError accepts custom error code
        */
-      test('should accept custom resource name', () => {
-        const error = new NotFoundError('User');
+      test('should accept custom error code for specific resource', () => {
+        const error = new NotFoundError('USER_001');
 
         expect(error.message).toBe('User not found');
+        expect(error.code).toBe('USER_001');
+        expect(error.suggestedAction).toBe('Please check the user ID and try again');
       });
     });
 
@@ -234,18 +250,22 @@ describe('Error Handler Middleware', () => {
 
         expect(error).toBeInstanceOf(AppError);
         expect(error.name).toBe('ConflictError');
-        expect(error.message).toBe('Resource already exists');
+        expect(error.message).toBe('User already exists');
+        expect(error.code).toBe('USER_002');
         expect(error.statusCode).toBe(409);
         expect(error.isOperational).toBe(true);
+        expect(error.suggestedAction).toBe('An account with this email already exists. Try logging in instead');
       });
 
       /**
-       * Test: ConflictError accepts custom message
+       * Test: ConflictError accepts custom error code
        */
-      test('should accept custom message', () => {
-        const error = new ConflictError('Email already registered');
+      test('should accept custom error code', () => {
+        const error = new ConflictError('REST_002');
 
-        expect(error.message).toBe('Email already registered');
+        expect(error.message).toBe('Restaurant already exists');
+        expect(error.code).toBe('REST_002');
+        expect(error.suggestedAction).toBe('A restaurant with this name already exists at this location');
       });
     });
 
@@ -285,7 +305,7 @@ describe('Error Handler Middleware', () => {
        * Test: Handles AppError with correct status and message
        */
       test('should handle AppError with correct status and message', () => {
-        const error = new AppError('Resource not found', 404);
+        const error = new AppError('SYS_004');
 
         errorHandler(error, mockRequest as Request, mockResponse as Response, mockNext);
 
@@ -293,7 +313,9 @@ describe('Error Handler Middleware', () => {
         expect(mockResponse.json).toHaveBeenCalledWith(
           expect.objectContaining({
             success: false,
-            error: 'Resource not found',
+            code: 'SYS_004',
+            message: 'Resource not found',
+            suggestedAction: 'The requested resource was not found',
             statusCode: 404,
             correlationId: 'test-correlation-id',
           })
@@ -305,7 +327,7 @@ describe('Error Handler Middleware', () => {
        */
       test('should include details for 4xx client errors', () => {
         const details = { field: 'email', issue: 'invalid' };
-        const error = new AppError('Validation failed', 400, details);
+        const error = new AppError('VAL_001', details);
 
         errorHandler(error, mockRequest as Request, mockResponse as Response, mockNext);
 
@@ -320,7 +342,7 @@ describe('Error Handler Middleware', () => {
        * Test: Logs 5xx errors as errors
        */
       test('should log 5xx operational errors as errors', () => {
-        const error = new AppError('Service unavailable', 503);
+        const error = new AppError('SYS_002');
 
         errorHandler(error, mockRequest as Request, mockResponse as Response, mockNext);
 
@@ -328,9 +350,9 @@ describe('Error Handler Middleware', () => {
         expect(callArgs[0]).toBe('Operational error (5xx)');
         expect(callArgs[1]).toMatchObject({
           statusCode: 500, // errorContext is built before statusCode is updated
-          message: 'Service unavailable',
+          message: 'Service temporarily unavailable',
           isOperational: true,
-          name: 'Error',
+          name: 'AppError',
           url: '/api/test',
           method: 'GET',
         });
@@ -341,7 +363,7 @@ describe('Error Handler Middleware', () => {
        * Test: Logs 4xx errors as warnings
        */
       test('should log 4xx client errors as warnings', () => {
-        const error = new AppError('Bad request', 400);
+        const error = new AppError('VAL_001');
 
         errorHandler(error, mockRequest as Request, mockResponse as Response, mockNext);
 
@@ -349,9 +371,9 @@ describe('Error Handler Middleware', () => {
         expect(callArgs[0]).toBe('Client error (4xx)');
         expect(callArgs[1]).toMatchObject({
           statusCode: 500, // errorContext is built before statusCode is updated
-          message: 'Bad request',
+          message: 'Request validation failed',
           isOperational: true,
-          name: 'Error',
+          name: 'AppError',
           url: '/api/test',
           method: 'GET',
         });
@@ -362,7 +384,9 @@ describe('Error Handler Middleware', () => {
        * Test: Does not log AppError with 2xx or 3xx status codes
        */
       test('should not log operational errors with 2xx or 3xx status codes', () => {
-        const error = new AppError('Success with warning', 200);
+        // Create an error and manually set status to 200 (for testing edge case)
+        const error = new AppError('VAL_001');
+        (error as any).statusCode = 200; // Override for test
 
         errorHandler(error, mockRequest as Request, mockResponse as Response, mockNext);
 
@@ -388,7 +412,9 @@ describe('Error Handler Middleware', () => {
         expect(mockResponse.json).toHaveBeenCalledWith(
           expect.objectContaining({
             success: false,
-            error: 'Database operation failed',
+            code: 'DB_002',
+            message: 'Database query failed',
+            suggestedAction: 'An error occurred while processing your request. Please try again',
             statusCode: 500,
           })
         );
@@ -434,7 +460,9 @@ describe('Error Handler Middleware', () => {
         expect(mockResponse.json).toHaveBeenCalledWith(
           expect.objectContaining({
             success: false,
-            error: 'Validation error',
+            code: 'VAL_001',
+            message: 'Request validation failed',
+            suggestedAction: 'Please check the request format and try again',
             statusCode: 400,
             details: zodError.errors,
           })
@@ -479,7 +507,9 @@ describe('Error Handler Middleware', () => {
         expect(mockResponse.json).toHaveBeenCalledWith(
           expect.objectContaining({
             success: false,
-            error: 'Invalid authentication token',
+            code: 'AUTH_002',
+            message: 'Invalid authentication token',
+            suggestedAction: 'Please log in again to obtain a new authentication token',
             statusCode: 401,
           })
         );
@@ -521,7 +551,9 @@ describe('Error Handler Middleware', () => {
         expect(mockResponse.json).toHaveBeenCalledWith(
           expect.objectContaining({
             success: false,
-            error: 'Authentication token expired',
+            code: 'AUTH_003',
+            message: 'Authentication token has expired',
+            suggestedAction: 'Please log in again to refresh your authentication token',
             statusCode: 401,
           })
         );
@@ -564,7 +596,9 @@ describe('Error Handler Middleware', () => {
         expect(mockResponse.json).toHaveBeenCalledWith(
           expect.objectContaining({
             success: false,
-            error: 'File upload error',
+            code: 'VAL_009',
+            message: 'File size exceeds limit',
+            suggestedAction: 'Please upload a smaller file',
             statusCode: 400,
             details: { error: 'File too large' },
           })
@@ -604,7 +638,9 @@ describe('Error Handler Middleware', () => {
         expect(mockResponse.json).toHaveBeenCalledWith(
           expect.objectContaining({
             success: false,
-            error: 'Internal server error',
+            code: 'SYS_001',
+            message: 'Internal server error',
+            suggestedAction: 'An unexpected error occurred. Please try again later',
             statusCode: 500,
           })
         );
@@ -658,7 +694,7 @@ describe('Error Handler Middleware', () => {
        */
       test('should include request context in error logs', () => {
         mockRequest.user = { id: 'user-123' } as any;
-        const error = new AppError('Test error', 400);
+        const error = new AppError('VAL_001');
 
         errorHandler(error, mockRequest as Request, mockResponse as Response, mockNext);
 
@@ -680,7 +716,7 @@ describe('Error Handler Middleware', () => {
        */
       test('should use default logger when request logger is not available', () => {
         delete mockRequest.logger;
-        const error = new AppError('Test error', 500);
+        const error = new AppError('SYS_001');
 
         errorHandler(error, mockRequest as Request, mockResponse as Response, mockNext);
 
@@ -693,7 +729,7 @@ describe('Error Handler Middleware', () => {
        * Test: Response includes correlation ID
        */
       test('should include correlation ID in response', () => {
-        const error = new AppError('Test error', 400);
+        const error = new AppError('VAL_001');
 
         errorHandler(error, mockRequest as Request, mockResponse as Response, mockNext);
 
@@ -708,7 +744,7 @@ describe('Error Handler Middleware', () => {
        * Test: Response includes success: false flag
        */
       test('should include success: false flag in response', () => {
-        const error = new AppError('Test error', 400);
+        const error = new AppError('VAL_001');
 
         errorHandler(error, mockRequest as Request, mockResponse as Response, mockNext);
 
@@ -725,7 +761,7 @@ describe('Error Handler Middleware', () => {
       test('should not include details for 5xx errors in production', () => {
         process.env.NODE_ENV = 'production';
         const details = { internalInfo: 'sensitive data' };
-        const error = new AppError('Server error', 500, details);
+        const error = new AppError('SYS_001', details);
 
         errorHandler(error, mockRequest as Request, mockResponse as Response, mockNext);
 
@@ -740,7 +776,7 @@ describe('Error Handler Middleware', () => {
        */
       test('should include stack trace in development environment', () => {
         process.env.NODE_ENV = 'development';
-        const error = new AppError('Test error', 400);
+        const error = new AppError('VAL_001');
 
         errorHandler(error, mockRequest as Request, mockResponse as Response, mockNext);
 
@@ -756,7 +792,7 @@ describe('Error Handler Middleware', () => {
        */
       test('should exclude stack trace in production environment', () => {
         process.env.NODE_ENV = 'production';
-        const error = new AppError('Test error', 400);
+        const error = new AppError('VAL_001');
 
         errorHandler(error, mockRequest as Request, mockResponse as Response, mockNext);
 
@@ -769,7 +805,7 @@ describe('Error Handler Middleware', () => {
        */
       test('should include stack trace for 4xx errors in development', () => {
         process.env.NODE_ENV = 'development';
-        const error = new AppError('Bad request', 400);
+        const error = new AppError('VAL_001');
 
         errorHandler(error, mockRequest as Request, mockResponse as Response, mockNext);
 
@@ -782,7 +818,7 @@ describe('Error Handler Middleware', () => {
        */
       test('should exclude stack trace for 4xx errors in production', () => {
         process.env.NODE_ENV = 'production';
-        const error = new AppError('Bad request', 400);
+        const error = new AppError('VAL_001');
 
         errorHandler(error, mockRequest as Request, mockResponse as Response, mockNext);
 
@@ -798,7 +834,7 @@ describe('Error Handler Middleware', () => {
       test('should include details for 4xx errors in production', () => {
         process.env.NODE_ENV = 'production';
         const details = { field: 'email', message: 'Invalid format' };
-        const error = new AppError('Validation failed', 400, details);
+        const error = new AppError('VAL_001', details);
 
         errorHandler(error, mockRequest as Request, mockResponse as Response, mockNext);
 
@@ -815,7 +851,7 @@ describe('Error Handler Middleware', () => {
       test('should include details in development for all errors', () => {
         process.env.NODE_ENV = 'development';
         const details = { internalInfo: 'debug data' };
-        const error = new AppError('Server error', 500, details);
+        const error = new AppError('SYS_001', details);
 
         errorHandler(error, mockRequest as Request, mockResponse as Response, mockNext);
 
@@ -830,7 +866,7 @@ describe('Error Handler Middleware', () => {
        * Test: Does not include undefined details
        */
       test('should not include details field when details are undefined', () => {
-        const error = new AppError('Test error', 400);
+        const error = new AppError('VAL_001');
 
         errorHandler(error, mockRequest as Request, mockResponse as Response, mockNext);
 
@@ -845,7 +881,7 @@ describe('Error Handler Middleware', () => {
        */
       test('should handle error when correlationId is missing', () => {
         delete mockRequest.correlationId;
-        const error = new AppError('Test error', 400);
+        const error = new AppError('VAL_001');
 
         errorHandler(error, mockRequest as Request, mockResponse as Response, mockNext);
 
@@ -860,7 +896,7 @@ describe('Error Handler Middleware', () => {
        * Test: Handles error without user in request
        */
       test('should handle error when user is not in request', () => {
-        const error = new AppError('Test error', 400);
+        const error = new AppError('VAL_001');
 
         errorHandler(error, mockRequest as Request, mockResponse as Response, mockNext);
 
@@ -877,7 +913,7 @@ describe('Error Handler Middleware', () => {
        */
       test('should include userId when user is in request', () => {
         mockRequest.user = { id: 'user-456' } as any;
-        const error = new AppError('Test error', 400);
+        const error = new AppError('VAL_001');
 
         errorHandler(error, mockRequest as Request, mockResponse as Response, mockNext);
 
@@ -902,7 +938,9 @@ describe('Error Handler Middleware', () => {
         expect(mockResponse.status).toHaveBeenCalledWith(500);
         expect(mockResponse.json).toHaveBeenCalledWith(
           expect.objectContaining({
-            error: 'Internal server error',
+            message: 'Internal server error',
+            code: 'SYS_001',
+            statusCode: 500,
           })
         );
       });
@@ -923,7 +961,7 @@ describe('Error Handler Middleware', () => {
        * Test: Handles null error details
        */
       test('should handle null error details', () => {
-        const error = new AppError('Test error', 400, null);
+        const error = new AppError('VAL_001', null);
 
         errorHandler(error, mockRequest as Request, mockResponse as Response, mockNext);
 
@@ -968,7 +1006,7 @@ describe('Error Handler Middleware', () => {
      * Test: Handles AppError rejections
      */
     test('should handle AppError rejections', async () => {
-      const error = new AppError('Not found', 404);
+      const error = new AppError('SYS_004');
       const asyncFn = jest.fn().mockRejectedValue(error);
       const wrappedFn = asyncHandler(asyncFn);
 
@@ -985,7 +1023,7 @@ describe('Error Handler Middleware', () => {
     test('should handle synchronous errors thrown in async function', async () => {
       // Testing the same behavior as promise rejections - asyncHandler
       // uses Promise.resolve() which catches both sync throws and async rejections
-      const error = new AppError('Test error', 400);
+      const error = new AppError('VAL_001');
       const asyncFn = jest.fn().mockRejectedValue(error);
       const wrappedFn = asyncHandler(asyncFn);
 
@@ -1110,7 +1148,7 @@ describe('Error Handler Middleware', () => {
      * Test: Complete flow from asyncHandler to errorHandler
      */
     test('should handle complete error flow from asyncHandler to errorHandler', async () => {
-      const error = new ValidationError('Invalid input');
+      const error = new ValidationError();
       const asyncFn = jest.fn().mockRejectedValue(error);
       const wrappedFn = asyncHandler(asyncFn);
 
@@ -1129,7 +1167,9 @@ describe('Error Handler Middleware', () => {
       expect(mockResponse.json).toHaveBeenCalledWith(
         expect.objectContaining({
           success: false,
-          error: 'Invalid input',
+          code: 'VAL_001',
+          message: 'Request validation failed',
+          suggestedAction: 'Please check the request format and try again',
           statusCode: 400,
         })
       );
@@ -1140,11 +1180,11 @@ describe('Error Handler Middleware', () => {
      */
     test('should handle different error types correctly', () => {
       const errors = [
-        new ValidationError('Invalid data'),
-        new AuthenticationError('Invalid token'),
-        new AuthorizationError('Access denied'),
-        new NotFoundError('User'),
-        new ConflictError('Email exists'),
+        new ValidationError(),
+        new AuthenticationError(),
+        new AuthorizationError(),
+        new NotFoundError('USER_001'),
+        new ConflictError(),
         new DatabaseError('Connection lost'),
       ];
 
@@ -1161,7 +1201,7 @@ describe('Error Handler Middleware', () => {
      * Test: Error handler with production environment flag
      */
     test('should behave differently in production vs development', () => {
-      const error = new AppError('Test error', 500);
+      const error = new AppError('SYS_001');
 
       // Test development
       process.env.NODE_ENV = 'development';

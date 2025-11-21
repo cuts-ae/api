@@ -14,5 +14,6 @@ const asyncHandler = (fn: Function) => (req: any, res: any, next: any) => {
 router.post('/register', validate(registerSchema), asyncHandler(AuthController.register));
 router.post('/login', validate(loginSchema), asyncHandler(AuthController.login));
 router.get('/me', authenticate, asyncHandler(AuthController.me));
+router.put('/profile', authenticate, asyncHandler(AuthController.updateProfile));
 
 export default router;

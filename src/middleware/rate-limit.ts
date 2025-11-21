@@ -1,4 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
+import { RateLimitError } from './errorHandler';
+import { ErrorCodeKey } from '../errors/error-codes';
 
 interface RateLimitStore {
   [key: string]: {
@@ -10,8 +12,7 @@ interface RateLimitStore {
 export interface RateLimitConfig {
   windowMs: number;
   max: number;
-  message?: string;
-  statusCode?: number;
+  errorCode?: ErrorCodeKey;
   skipSuccessfulRequests?: boolean;
   skipFailedRequests?: boolean;
   keyGenerator?: (req: Request) => string;
@@ -23,8 +24,7 @@ export function createRateLimiter(config: RateLimitConfig) {
   const {
     windowMs,
     max,
-    message = 'Too many requests, please try again later.',
-    statusCode = 429,
+    errorCode = 'RATE_001',
     skipSuccessfulRequests = false,
     skipFailedRequests = false,
     keyGenerator = (req: Request) => req.ip || 'unknown'
@@ -50,10 +50,8 @@ export function createRateLimiter(config: RateLimitConfig) {
       res.set('X-RateLimit-Remaining', '0');
       res.set('X-RateLimit-Reset', String(record.resetTime));
 
-      return res.status(statusCode).json({
-        error: message,
-        retryAfter
-      });
+      const error = new RateLimitError(errorCode, { retryAfter });
+      return next(error);
     }
 
     record.count++;
@@ -90,13 +88,13 @@ export function resetRateLimitStore() {
 export const authRateLimiter = createRateLimiter({
   windowMs: 15 * 60 * 1000,
   max: 5,
-  message: 'Too many authentication attempts. Please try again later.',
+  errorCode: 'RATE_002',
   keyGenerator: (req) => `auth:${req.ip || 'unknown'}`
 });
 
 export const generalRateLimiter = createRateLimiter({
   windowMs: 60 * 1000,
   max: 100,
-  message: 'Too many requests. Please try again later.',
+  errorCode: 'RATE_001',
   keyGenerator: (req) => `general:${req.ip || 'unknown'}`
 });

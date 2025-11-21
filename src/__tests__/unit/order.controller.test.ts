@@ -177,7 +177,7 @@ describe('OrderController', () => {
 
       await expect(
         OrderController.create(mockRequest as AuthRequest, mockResponse as Response)
-      ).rejects.toThrow(new AppError('One or more menu items not found', 400));
+      ).rejects.toThrow(new AppError('ORD_010'));
     });
 
     it('should throw error when menu item is not available', async () => {
@@ -192,7 +192,7 @@ describe('OrderController', () => {
 
       await expect(
         OrderController.create(mockRequest as AuthRequest, mockResponse as Response)
-      ).rejects.toThrow(new AppError('Menu item item-1 is not available', 400));
+      ).rejects.toThrow(new AppError('ORD_003'));
     });
 
     it('should throw error when ordering from more than 2 restaurants', async () => {
@@ -216,7 +216,7 @@ describe('OrderController', () => {
 
       await expect(
         OrderController.create(mockRequest as AuthRequest, mockResponse as Response)
-      ).rejects.toThrow(new AppError('Cannot order from more than 2 restaurants', 400));
+      ).rejects.toThrow(new AppError('ORD_002'));
     });
 
     it('should allow ordering from exactly 2 restaurants', async () => {
@@ -443,7 +443,7 @@ describe('OrderController', () => {
 
       await expect(
         OrderController.getById(mockRequest as AuthRequest, mockResponse as Response)
-      ).rejects.toThrow(new AppError('Order not found', 404));
+      ).rejects.toThrow(new AppError('ORD_001'));
     });
 
     it('should throw error when customer tries to access another customer order', async () => {
@@ -460,7 +460,7 @@ describe('OrderController', () => {
 
       await expect(
         OrderController.getById(mockRequest as AuthRequest, mockResponse as Response)
-      ).rejects.toThrow(new AppError('Forbidden', 403));
+      ).rejects.toThrow(new AppError('PERM_003'));
     });
 
     it('should throw error when restaurant owner tries to access order from different restaurant', async () => {
@@ -483,7 +483,7 @@ describe('OrderController', () => {
 
       await expect(
         OrderController.getById(mockRequest as AuthRequest, mockResponse as Response)
-      ).rejects.toThrow(new AppError('Forbidden', 403));
+      ).rejects.toThrow(new AppError('PERM_003'));
     });
   });
 
@@ -698,7 +698,7 @@ describe('OrderController', () => {
 
       await expect(
         OrderController.updateStatus(mockRequest as AuthRequest, mockResponse as Response)
-      ).rejects.toThrow(new AppError('Order not found', 404));
+      ).rejects.toThrow(new AppError('ORD_001'));
     });
 
     it('should throw error when restaurant owner tries to update order from different restaurant', async () => {
@@ -716,7 +716,7 @@ describe('OrderController', () => {
 
       await expect(
         OrderController.updateStatus(mockRequest as AuthRequest, mockResponse as Response)
-      ).rejects.toThrow(new AppError('Forbidden', 403));
+      ).rejects.toThrow(new AppError('PERM_003'));
     });
 
     it('should update status through all valid transitions', async () => {
@@ -827,7 +827,7 @@ describe('OrderController', () => {
 
       await expect(
         OrderController.cancel(mockRequest as AuthRequest, mockResponse as Response)
-      ).rejects.toThrow(new AppError('Order not found', 404));
+      ).rejects.toThrow(new AppError('ORD_001'));
     });
 
     it('should throw error when customer tries to cancel another customer order', async () => {
@@ -843,7 +843,7 @@ describe('OrderController', () => {
 
       await expect(
         OrderController.cancel(mockRequest as AuthRequest, mockResponse as Response)
-      ).rejects.toThrow(new AppError('Forbidden', 403));
+      ).rejects.toThrow(new AppError('PERM_003'));
     });
 
     it('should throw error when trying to cancel picked up order', async () => {
@@ -859,7 +859,7 @@ describe('OrderController', () => {
 
       await expect(
         OrderController.cancel(mockRequest as AuthRequest, mockResponse as Response)
-      ).rejects.toThrow(new AppError('Cannot cancel order at this stage', 400));
+      ).rejects.toThrow(new AppError('ORD_004'));
     });
 
     it('should throw error when trying to cancel in-transit order', async () => {
@@ -875,7 +875,7 @@ describe('OrderController', () => {
 
       await expect(
         OrderController.cancel(mockRequest as AuthRequest, mockResponse as Response)
-      ).rejects.toThrow(new AppError('Cannot cancel order at this stage', 400));
+      ).rejects.toThrow(new AppError('ORD_004'));
     });
 
     it('should throw error when trying to cancel delivered order', async () => {
@@ -891,7 +891,7 @@ describe('OrderController', () => {
 
       await expect(
         OrderController.cancel(mockRequest as AuthRequest, mockResponse as Response)
-      ).rejects.toThrow(new AppError('Cannot cancel order at this stage', 400));
+      ).rejects.toThrow(new AppError('ORD_004'));
     });
 
     it('should allow cancellation when order is pending', async () => {
@@ -1334,7 +1334,7 @@ describe('OrderController', () => {
 
       await expect(
         OrderController.getById(mockRequest as AuthRequest, mockResponse as Response)
-      ).rejects.toThrow(new AppError('Forbidden', 403));
+      ).rejects.toThrow(new AppError('PERM_003'));
     });
 
     it('should prevent driver from updating order status', async () => {
@@ -1352,7 +1352,7 @@ describe('OrderController', () => {
 
       await expect(
         OrderController.updateStatus(mockRequest as AuthRequest, mockResponse as Response)
-      ).rejects.toThrow(new AppError('Forbidden', 403));
+      ).rejects.toThrow(new AppError('PERM_003'));
     });
 
     it('should prevent restaurant owner from cancelling orders', async () => {
@@ -1373,7 +1373,7 @@ describe('OrderController', () => {
 
       await expect(
         OrderController.cancel(mockRequest as AuthRequest, mockResponse as Response)
-      ).rejects.toThrow(new AppError('Forbidden', 403));
+      ).rejects.toThrow(new AppError('PERM_003'));
     });
   });
 });

@@ -1,0 +1,38 @@
+# Example Artillery configuration for different environments
+# Copy this to customize tests for staging/production
+
+# DEVELOPMENT (local)
+development:
+  target: "http://localhost:45000"
+  phases:
+    - duration: 60
+      arrivalRate: 10
+
+# STAGING
+staging:
+  target: "https://api.staging.cuts.ae"
+  phases:
+    - duration: 120
+      arrivalRate: 25
+      rampTo: 100
+  variables:
+    testEmail: "staging-test@example.com"
+    testPassword: "StagingTest123!"
+
+# PRODUCTION (USE WITH CAUTION)
+production:
+  target: "https://api.cuts.ae"
+  phases:
+    # Very gradual ramp for production
+    - duration: 300
+      arrivalRate: 10
+      rampTo: 50
+  variables:
+    testEmail: "prod-test@example.com"
+    testPassword: "ProdTest123!"
+  ensure:
+    maxErrorRate: 0.1  # Stricter threshold
+    p99: 500
+
+# Usage:
+# artillery run --environment staging performance/load-test.yml

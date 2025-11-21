@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
+import { ValidationError } from './errorHandler';
 
 export const validate = (schema: z.ZodSchema) => {
   return async (req: Request, res: Response, next: NextFunction) => {
@@ -8,10 +9,7 @@ export const validate = (schema: z.ZodSchema) => {
       next();
     } catch (error: any) {
       if (error instanceof z.ZodError) {
-        return res.status(400).json({
-          error: 'Validation failed',
-          details: error.issues
-        });
+        return next(new ValidationError(error.issues));
       }
       next(error);
     }

@@ -1,0 +1,53 @@
+{
+  "$schema": "./node_modules/@stryker-mutator/core/schema/stryker-schema.json",
+  "packageManager": "npm",
+  "reporters": ["html", "clear-text", "progress", "json"],
+  "testRunner": "jest",
+  "coverageAnalysis": "perTest",
+  "jest": {
+    "projectType": "custom",
+    "configFile": "jest.config.js",
+    "enableFindRelatedTests": true
+  },
+  "mutate": [
+    "src/controllers/*.ts",
+    "src/middleware/auth.ts",
+    "src/middleware/rbac.ts",
+    "src/utils/*.ts",
+    "!src/**/*.test.ts",
+    "!src/**/__tests__/**",
+    "!src/**/*.d.ts"
+  ],
+  "thresholds": {
+    "high": 80,
+    "low": 60,
+    "break": 50
+  },
+  "timeoutMS": 60000,
+  "timeoutFactor": 2,
+  "maxConcurrentTestRunners": 2,
+  "mutator": {
+    "plugins": ["typescript"],
+    "excludedMutations": []
+  },
+  "checkers": ["typescript"],
+  "tsconfigFile": "tsconfig.json",
+  "ignorePatterns": [
+    "node_modules",
+    "dist",
+    "coverage",
+    "playwright-report",
+    "stryker-report",
+    "**/*.spec.ts",
+    "**/*.test.ts",
+    "src/__tests__/**",
+    "src/index.ts",
+    "src/app.ts"
+  ],
+  "htmlReporter": {
+    "fileName": "stryker-report/mutation-report.html"
+  },
+  "jsonReporter": {
+    "fileName": "stryker-report/mutation-report.json"
+  }
+}

@@ -20,7 +20,7 @@ export class AuthController {
     );
 
     if (existingUser.rows.length > 0) {
-      throw new AppError('Email already registered', 400);
+      throw new AppError('USER_002');
     }
 
     // Hash password
@@ -75,14 +75,14 @@ export class AuthController {
     const user = result.rows[0];
 
     if (!user) {
-      throw new AppError('Invalid credentials', 401);
+      throw new AppError('AUTH_004');
     }
 
     // Verify password
     const isValidPassword = await bcrypt.compare(password, user.password_hash);
 
     if (!isValidPassword) {
-      throw new AppError('Invalid credentials', 401);
+      throw new AppError('AUTH_004');
     }
 
     // Update last login
@@ -127,9 +127,38 @@ export class AuthController {
     const user = result.rows[0];
 
     if (!user) {
-      throw new AppError('User not found', 404);
+      throw new AppError('USER_001');
     }
 
     res.json({ user });
+  }
+
+  /**
+   * Update user profile
+   */
+  static async updateProfile(req: AuthRequest, res: Response) {
+    const { first_name, last_name, phone } = req.body;
+
+    const result = await pool.query(
+      `UPDATE users
+       SET first_name = COALESCE($1, first_name),
+           last_name = COALESCE($2, last_name),
+           phone = COALESCE($3, phone),
+           updated_at = NOW()
+       WHERE id = $4
+       RETURNING id, email, first_name, last_name, role, phone, created_at`,
+      [first_name, last_name, phone, req.user!.userId]
+    );
+
+    const user = result.rows[0];
+
+    if (!user) {
+      throw new AppError('USER_001');
+    }
+
+    res.json({
+      message: 'Profile updated successfully',
+      user
+    });
   }
 }

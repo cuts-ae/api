@@ -46,6 +46,7 @@ export const ENDPOINT_PERMISSIONS: EndpointPermissions = {
 
   // Protected authentication (requires valid token)
   'GET /api/v1/auth/me': [UserRole.ADMIN, UserRole.CUSTOMER, UserRole.RESTAURANT_OWNER, UserRole.DRIVER, UserRole.SUPPORT],
+  'PUT /api/v1/auth/profile': [UserRole.ADMIN, UserRole.CUSTOMER, UserRole.RESTAURANT_OWNER, UserRole.DRIVER, UserRole.SUPPORT],
 
   // ========================================
   // RESTAURANT ENDPOINTS
@@ -59,6 +60,7 @@ export const ENDPOINT_PERMISSIONS: EndpointPermissions = {
   'GET /api/v1/restaurants/my/restaurants': [UserRole.RESTAURANT_OWNER, UserRole.ADMIN],
   'POST /api/v1/restaurants': [UserRole.RESTAURANT_OWNER, UserRole.ADMIN],
   'PUT /api/v1/restaurants/:id': [UserRole.RESTAURANT_OWNER, UserRole.ADMIN],
+  'DELETE /api/v1/restaurants/:id': [UserRole.RESTAURANT_OWNER, UserRole.ADMIN],
   'PATCH /api/v1/restaurants/:id/operating-status': [UserRole.RESTAURANT_OWNER, UserRole.ADMIN],
   'GET /api/v1/restaurants/:id/analytics': [UserRole.RESTAURANT_OWNER, UserRole.ADMIN],
 
@@ -92,6 +94,7 @@ export const ENDPOINT_PERMISSIONS: EndpointPermissions = {
 
   // Order cancellation (customers and admins only)
   'POST /api/v1/orders/:id/cancel': [UserRole.ADMIN, UserRole.CUSTOMER],
+  'PUT /api/v1/orders/:id/cancel': [UserRole.ADMIN, UserRole.CUSTOMER],
 
   // ========================================
   // ADMIN ENDPOINTS (Admin Only)

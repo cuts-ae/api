@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { AuthRequest } from './auth';
 import { getAllowedRolesForEndpoint, isPublicEndpoint, hasPermission } from '../config/permissions';
 import { UserRole } from '../types';
+import { AuthenticationError, AuthorizationError } from './errorHandler';
 
 /**
  * RBAC Middleware
@@ -44,11 +45,7 @@ export const rbacMiddleware = (
       `[RBAC] ${timestamp} - SECURITY WARNING: No permissions defined for ${method} ${path}. ` +
       `IP: ${req.ip}, User-Agent: ${req.get('user-agent')}`
     );
-    return res.status(403).json({
-      success: false,
-      error: 'Forbidden',
-      message: 'No permissions defined for this endpoint'
-    });
+    return next(new AuthorizationError('PERM_002'));
   }
 
   // If endpoint requires authentication but user is not authenticated
@@ -57,11 +54,7 @@ export const rbacMiddleware = (
       `[RBAC] ${timestamp} - Unauthenticated access attempt to ${method} ${path}. ` +
       `IP: ${req.ip}, User-Agent: ${req.get('user-agent')}`
     );
-    return res.status(401).json({
-      success: false,
-      error: 'Unauthorized',
-      message: 'Authentication required'
-    });
+    return next(new AuthenticationError('AUTH_007'));
   }
 
   // Check if user has permission
@@ -78,11 +71,13 @@ export const rbacMiddleware = (
       `IP: ${req.ip}`
     );
 
-    return res.status(403).json({
-      success: false,
-      error: 'Forbidden',
-      message: `You do not have permission to access this resource. Required roles: ${allowedRoles.join(', ')}`
-    });
+    const errorDetails = {
+      userRole,
+      requiredRoles: allowedRoles,
+      endpoint: `${method} ${path}`
+    };
+
+    return next(new AuthorizationError('PERM_001', errorDetails));
   }
 
   // Permission granted - log for audit trail
@@ -108,11 +103,7 @@ export const rbacMiddleware = (
 export const requireRole = (...roles: UserRole[]) => {
   return (req: AuthRequest, res: Response, next: NextFunction) => {
     if (!req.user) {
-      return res.status(401).json({
-        success: false,
-        error: 'Unauthorized',
-        message: 'Authentication required'
-      });
+      return next(new AuthenticationError('AUTH_007'));
     }
 
     const userRole = req.user.role as UserRole;
@@ -123,11 +114,12 @@ export const requireRole = (...roles: UserRole[]) => {
         `attempted to access restricted resource. Required roles: ${roles.join(', ')}`
       );
 
-      return res.status(403).json({
-        success: false,
-        error: 'Forbidden',
-        message: `Insufficient permissions. Required roles: ${roles.join(', ')}`
-      });
+      const errorDetails = {
+        userRole,
+        requiredRoles: roles
+      };
+
+      return next(new AuthorizationError('PERM_001', errorDetails));
     }
 
     next();
@@ -154,11 +146,7 @@ export const requireAdmin = requireRole(UserRole.ADMIN);
 export const requireOwnership = (resourceIdParam: string, userIdField: string = 'userId') => {
   return (req: AuthRequest, res: Response, next: NextFunction) => {
     if (!req.user) {
-      return res.status(401).json({
-        success: false,
-        error: 'Unauthorized',
-        message: 'Authentication required'
-      });
+      return next(new AuthenticationError('AUTH_007'));
     }
 
     const resourceId = req.params[resourceIdParam];
@@ -175,11 +163,12 @@ export const requireOwnership = (resourceIdParam: string, userIdField: string = 
         `attempted to access resource ${resourceId} owned by different user`
       );
 
-      return res.status(403).json({
-        success: false,
-        error: 'Forbidden',
-        message: 'You do not have permission to access this resource'
-      });
+      const errorDetails = {
+        resourceId,
+        userId
+      };
+
+      return next(new AuthorizationError('PERM_003', errorDetails));
     }
 
     next();

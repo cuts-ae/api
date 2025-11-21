@@ -19,6 +19,7 @@
 import { Request, Response, NextFunction } from 'express';
 import logger from '../utils/logger';
 import { RequestWithLogger } from './request-logger';
+import { ErrorCodeKey, ERROR_CODES, createErrorResponse } from '../errors/error-codes';
 
 /**
  * Custom Application Error class
@@ -27,33 +28,55 @@ import { RequestWithLogger } from './request-logger';
  * @class AppError
  * @extends Error
  *
+ * @property {string} code - Error code (e.g., "AUTH_001")
  * @property {number} statusCode - HTTP status code
+ * @property {string} suggestedAction - What user should do
  * @property {boolean} isOperational - Flag to distinguish operational errors
  * @property {any} details - Additional error details
  *
  * @example
- * throw new AppError('User not found', 404);
+ * throw new AppError('AUTH_001');
  */
 export class AppError extends Error {
+  code: string;
   statusCode: number;
+  suggestedAction: string;
   isOperational: boolean;
   details?: any;
+  internalMessage: string;
 
   /**
-   * Creates an AppError instance
+   * Creates an AppError instance using error codes
    *
-   * @param {string} message - Error message
-   * @param {number} statusCode - HTTP status code
+   * @param {ErrorCodeKey} errorCode - Error code from ERROR_CODES
    * @param {any} details - Optional additional error details
    */
-  constructor(message: string, statusCode: number, details?: any) {
-    super(message);
-    this.statusCode = statusCode;
+  constructor(errorCode: ErrorCodeKey, details?: any) {
+    const errorDef = ERROR_CODES[errorCode];
+    super(errorDef.message);
+
+    this.code = errorDef.code;
+    this.statusCode = errorDef.httpStatus;
+    this.suggestedAction = errorDef.suggestedAction;
+    this.internalMessage = errorDef.internalMessage;
     this.isOperational = true;
     this.details = details;
+    this.name = 'AppError';
 
     // Maintain proper stack trace
     Error.captureStackTrace(this, this.constructor);
+  }
+
+  /**
+   * Legacy constructor for backwards compatibility
+   * DEPRECATED: Use error codes instead
+   */
+  static createLegacy(message: string, statusCode: number, details?: any): AppError {
+    const error = new AppError('SYS_001', details);
+    error.message = message;
+    error.statusCode = statusCode;
+    error.suggestedAction = 'Please try again or contact support';
+    return error;
   }
 }
 
@@ -65,8 +88,8 @@ export class AppError extends Error {
  * @extends AppError
  */
 export class ValidationError extends AppError {
-  constructor(message: string, details?: any) {
-    super(message, 400, details);
+  constructor(details?: any) {
+    super('VAL_001', details);
     this.name = 'ValidationError';
   }
 }
@@ -79,8 +102,8 @@ export class ValidationError extends AppError {
  * @extends AppError
  */
 export class AuthenticationError extends AppError {
-  constructor(message: string = 'Authentication failed') {
-    super(message, 401);
+  constructor(errorCode: ErrorCodeKey = 'AUTH_002', details?: any) {
+    super(errorCode, details);
     this.name = 'AuthenticationError';
   }
 }
@@ -93,8 +116,8 @@ export class AuthenticationError extends AppError {
  * @extends AppError
  */
 export class AuthorizationError extends AppError {
-  constructor(message: string = 'Insufficient permissions') {
-    super(message, 403);
+  constructor(errorCode: ErrorCodeKey = 'PERM_001', details?: any) {
+    super(errorCode, details);
     this.name = 'AuthorizationError';
   }
 }
@@ -107,8 +130,8 @@ export class AuthorizationError extends AppError {
  * @extends AppError
  */
 export class NotFoundError extends AppError {
-  constructor(resource: string = 'Resource') {
-    super(`${resource} not found`, 404);
+  constructor(errorCode: ErrorCodeKey = 'SYS_004', details?: any) {
+    super(errorCode, details);
     this.name = 'NotFoundError';
   }
 }
@@ -121,9 +144,23 @@ export class NotFoundError extends AppError {
  * @extends AppError
  */
 export class ConflictError extends AppError {
-  constructor(message: string = 'Resource already exists') {
-    super(message, 409);
+  constructor(errorCode: ErrorCodeKey = 'USER_002', details?: any) {
+    super(errorCode, details);
     this.name = 'ConflictError';
+  }
+}
+
+/**
+ * Rate Limit Error class
+ * For rate limiting errors
+ *
+ * @class RateLimitError
+ * @extends AppError
+ */
+export class RateLimitError extends AppError {
+  constructor(errorCode: ErrorCodeKey = 'RATE_001', details?: any) {
+    super(errorCode, details);
+    this.name = 'RateLimitError';
   }
 }
 
@@ -178,9 +215,12 @@ export const errorHandler = (
   const isOperational = err instanceof AppError && err.isOperational;
 
   // Default error values
+  let errorCode = 'SYS_001';
   let statusCode = 500;
   let message = 'Internal server error';
+  let suggestedAction = 'An unexpected error occurred. Please try again later';
   let details = null;
+  let internalMessage = 'Unexpected error occurred';
 
   // Build error context for logging
   const errorContext = {
@@ -200,52 +240,97 @@ export const errorHandler = (
   // Handle specific error types
   if (err instanceof AppError) {
     // Operational errors - expected and handled
+    errorCode = err.code;
     statusCode = err.statusCode;
     message = err.message;
+    suggestedAction = err.suggestedAction;
+    internalMessage = err.internalMessage;
     details = err.details;
 
     // Log operational errors at appropriate level
     if (statusCode >= 500) {
-      requestLogger.error('Operational error (5xx)', errorContext);
+      requestLogger.error('Operational error (5xx)', { ...errorContext, errorCode, internalMessage });
     } else if (statusCode >= 400) {
-      requestLogger.warn('Client error (4xx)', errorContext);
+      requestLogger.warn('Client error (4xx)', { ...errorContext, errorCode, internalMessage });
     }
   } else if (err instanceof DatabaseError) {
     // Database errors - serious but may be recoverable
+    errorCode = 'DB_002';
     statusCode = 500;
-    message = 'Database operation failed';
+    const dbError = ERROR_CODES.DB_002;
+    message = dbError.message;
+    suggestedAction = dbError.suggestedAction;
+    internalMessage = dbError.internalMessage;
     requestLogger.error('Database error', {
       ...errorContext,
+      errorCode,
       query: err.query,
       params: err.params,
     });
   } else if (err.name === 'ZodError') {
     // Zod validation errors
+    errorCode = 'VAL_001';
     statusCode = 400;
-    message = 'Validation error';
+    const valError = ERROR_CODES.VAL_001;
+    message = valError.message;
+    suggestedAction = valError.suggestedAction;
+    internalMessage = valError.internalMessage;
     details = (err as any).errors;
-    requestLogger.warn('Validation error', { ...errorContext, details });
+    requestLogger.warn('Validation error', { ...errorContext, errorCode, details });
   } else if (err.name === 'JsonWebTokenError') {
     // JWT errors
+    errorCode = 'AUTH_002';
     statusCode = 401;
-    message = 'Invalid authentication token';
-    requestLogger.securityEvent('Invalid JWT token', errorContext);
+    const authError = ERROR_CODES.AUTH_002;
+    message = authError.message;
+    suggestedAction = authError.suggestedAction;
+    internalMessage = authError.internalMessage;
+    requestLogger.securityEvent('Invalid JWT token', { ...errorContext, errorCode });
   } else if (err.name === 'TokenExpiredError') {
     // JWT expiration
+    errorCode = 'AUTH_003';
     statusCode = 401;
-    message = 'Authentication token expired';
-    requestLogger.warn('JWT token expired', errorContext);
+    const authError = ERROR_CODES.AUTH_003;
+    message = authError.message;
+    suggestedAction = authError.suggestedAction;
+    internalMessage = authError.internalMessage;
+    requestLogger.warn('JWT token expired', { ...errorContext, errorCode });
   } else if (err.name === 'MulterError') {
     // File upload errors
-    statusCode = 400;
-    message = 'File upload error';
+    const multerErr = err as any;
+    if (multerErr.code === 'LIMIT_FILE_SIZE') {
+      errorCode = 'VAL_009';
+      const valError = ERROR_CODES.VAL_009;
+      statusCode = valError.httpStatus;
+      message = valError.message;
+      suggestedAction = valError.suggestedAction;
+      internalMessage = valError.internalMessage;
+    } else if (multerErr.code === 'LIMIT_UNEXPECTED_FILE') {
+      errorCode = 'VAL_008';
+      const valError = ERROR_CODES.VAL_008;
+      statusCode = valError.httpStatus;
+      message = valError.message;
+      suggestedAction = valError.suggestedAction;
+      internalMessage = valError.internalMessage;
+    } else {
+      errorCode = 'VAL_001';
+      statusCode = 400;
+      const valError = ERROR_CODES.VAL_001;
+      message = valError.message;
+      suggestedAction = valError.suggestedAction;
+      internalMessage = 'File upload error: ' + err.message;
+    }
     details = { error: err.message };
-    requestLogger.warn('File upload error', errorContext);
+    requestLogger.warn('File upload error', { ...errorContext, errorCode });
   } else {
     // Unexpected programming errors - critical
+    errorCode = 'SYS_001';
     statusCode = 500;
-    message = 'Internal server error';
-    requestLogger.error('UNEXPECTED ERROR - Programming bug detected', errorContext);
+    const sysError = ERROR_CODES.SYS_001;
+    message = sysError.message;
+    suggestedAction = sysError.suggestedAction;
+    internalMessage = sysError.internalMessage;
+    requestLogger.error('UNEXPECTED ERROR - Programming bug detected', { ...errorContext, errorCode });
 
     // In production, you might want to trigger alerts here
     // e.g., send to error tracking service (Sentry, Rollbar, etc.)
@@ -255,10 +340,12 @@ export const errorHandler = (
     }
   }
 
-  // Prepare response
+  // Prepare response with error codes
   const errorResponse: any = {
     success: false,
-    error: message,
+    code: errorCode,
+    message: message,
+    suggestedAction: suggestedAction,
     statusCode,
     correlationId: (req as RequestWithLogger).correlationId,
   };
@@ -271,6 +358,7 @@ export const errorHandler = (
     // Include stack trace only in development
     if (process.env.NODE_ENV === 'development') {
       errorResponse.stack = err.stack;
+      errorResponse.internalMessage = internalMessage;
     }
   }
 
@@ -310,6 +398,6 @@ export const notFoundHandler = (
   res: Response,
   next: NextFunction
 ) => {
-  const error = new NotFoundError('Route');
+  const error = new NotFoundError('SYS_005');
   next(error);
 };

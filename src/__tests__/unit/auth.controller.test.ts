@@ -180,7 +180,7 @@ describe('AuthController', () => {
           fail('Should have thrown an error');
         } catch (error) {
           expect(error).toBeInstanceOf(AppError);
-          expect((error as AppError).message).toBe('Email already registered');
+          expect((error as AppError).message).toBe('User already exists');
         }
 
         expect(mockPool.query).toHaveBeenCalledTimes(1);
@@ -190,7 +190,7 @@ describe('AuthController', () => {
         );
       });
 
-      it('should throw AppError with status 400 for duplicate email', async () => {
+      it('should throw AppError with status 409 for duplicate email', async () => {
         mockRequest.body = validRegistrationData;
 
         mockPool.query.mockResolvedValueOnce({
@@ -202,8 +202,8 @@ describe('AuthController', () => {
           fail('Should have thrown an error');
         } catch (error) {
           expect(error).toBeInstanceOf(AppError);
-          expect((error as AppError).statusCode).toBe(400);
-          expect((error as AppError).message).toBe('Email already registered');
+          expect((error as AppError).statusCode).toBe(409);
+          expect((error as AppError).message).toBe('User already exists');
         }
       });
     });
@@ -701,6 +701,7 @@ describe('AuthController', () => {
         } catch (error) {
           expect(error).toBeInstanceOf(AppError);
           expect((error as AppError).message).toBe('Invalid credentials');
+          expect((error as AppError).code).toBe('AUTH_004');
         }
       });
 
@@ -716,6 +717,7 @@ describe('AuthController', () => {
           expect(error).toBeInstanceOf(AppError);
           expect((error as AppError).statusCode).toBe(401);
           expect((error as AppError).message).toBe('Invalid credentials');
+          expect((error as AppError).code).toBe('AUTH_004');
         }
       });
 
@@ -744,6 +746,8 @@ describe('AuthController', () => {
         } catch (error) {
           expect(error).toBeInstanceOf(AppError);
           expect((error as AppError).statusCode).toBe(401);
+          expect((error as AppError).message).toBe('Invalid credentials');
+          expect((error as AppError).code).toBe('AUTH_004');
         }
       });
 
@@ -1165,6 +1169,7 @@ describe('AuthController', () => {
         } catch (error) {
           expect(error).toBeInstanceOf(AppError);
           expect((error as AppError).message).toBe('User not found');
+          expect((error as AppError).code).toBe('USER_001');
         }
       });
 
@@ -1184,6 +1189,7 @@ describe('AuthController', () => {
           expect(error).toBeInstanceOf(AppError);
           expect((error as AppError).statusCode).toBe(404);
           expect((error as AppError).message).toBe('User not found');
+          expect((error as AppError).code).toBe('USER_001');
         }
       });
 

@@ -11,6 +11,7 @@ import supportRoutes from "./routes/support.routes";
 import chatRoutes from "./routes/chat.routes";
 import { errorHandler } from "./middleware/errorHandler";
 import { rbacMiddleware } from "./middleware/rbac";
+import { sanitizeInput } from "./middleware/sanitize";
 
 // Load environment variables from root .env file
 dotenv.config({ path: path.resolve(__dirname, "../../.env") });
@@ -40,6 +41,38 @@ app.use(
   }),
 );
 
+// Content-Type validation for POST/PUT/PATCH requests
+app.use((req: Request, res: Response, next: any) => {
+  const method = req.method;
+  const isStateChanging = ['POST', 'PUT', 'PATCH'].includes(method);
+  const contentType = req.get('Content-Type');
+
+  // Skip validation for public endpoints and GET/DELETE requests
+  if (!isStateChanging) {
+    return next();
+  }
+
+  // Check if request has a body (Content-Length > 0 or Transfer-Encoding exists)
+  const hasBody = req.get('Content-Length') !== undefined || req.get('Transfer-Encoding') !== undefined;
+
+  // If there's a body, validate content-type
+  if (hasBody && contentType) {
+    const isJson = contentType.includes('application/json');
+    const isFormData = contentType.includes('multipart/form-data');
+    const isUrlEncoded = contentType.includes('application/x-www-form-urlencoded');
+
+    if (!isJson && !isFormData && !isUrlEncoded) {
+      return res.status(415).json({
+        success: false,
+        error: 'Unsupported Media Type',
+        message: 'Content-Type must be application/json, multipart/form-data, or application/x-www-form-urlencoded'
+      });
+    }
+  }
+
+  next();
+});
+
 // JSON parsing with error handling
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -55,6 +88,9 @@ app.use((err: any, req: Request, res: Response, next: any) => {
   }
   next(err);
 });
+
+// XSS Sanitization - must come after body parsing
+app.use(sanitizeInput);
 
 // Health check
 app.get("/", (req: Request, res: Response) => {

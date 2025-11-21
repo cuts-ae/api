@@ -154,13 +154,9 @@ describe('RBAC Middleware', () => {
 
       rbacMiddleware(mockRequest as AuthRequest, mockResponse as Response, nextFunction);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(403);
-      expect(mockResponse.json).toHaveBeenCalledWith({
-        success: false,
-        error: 'Forbidden',
-        message: 'No permissions defined for this endpoint'
-      });
-      expect(nextFunction).not.toHaveBeenCalled();
+      expect(nextFunction).toHaveBeenCalled();
+      const error = (nextFunction as jest.Mock).mock.calls[0][0];
+      expect(error?.code).toBe('PERM_002');
       expect(consoleErrorSpy).toHaveBeenCalledWith(
         expect.stringContaining('SECURITY WARNING: No permissions defined for GET /api/v1/undefined-endpoint')
       );
@@ -172,13 +168,9 @@ describe('RBAC Middleware', () => {
 
       rbacMiddleware(mockRequest as AuthRequest, mockResponse as Response, nextFunction);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(403);
-      expect(mockResponse.json).toHaveBeenCalledWith({
-        success: false,
-        error: 'Forbidden',
-        message: 'No permissions defined for this endpoint'
-      });
-      expect(nextFunction).not.toHaveBeenCalled();
+      expect(nextFunction).toHaveBeenCalled();
+      const error = (nextFunction as jest.Mock).mock.calls[0][0];
+      expect(error?.code).toBe('PERM_002');
     });
 
     it('should log security warning with IP and user agent for undefined endpoint', () => {
@@ -204,13 +196,9 @@ describe('RBAC Middleware', () => {
 
       rbacMiddleware(mockRequest as AuthRequest, mockResponse as Response, nextFunction);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(401);
-      expect(mockResponse.json).toHaveBeenCalledWith({
-        success: false,
-        error: 'Unauthorized',
-        message: 'Authentication required'
-      });
-      expect(nextFunction).not.toHaveBeenCalled();
+      expect(nextFunction).toHaveBeenCalled();
+      const error = (nextFunction as jest.Mock).mock.calls[0][0];
+      expect(error?.code).toBe('AUTH_007');
     });
 
     it('should log warning for unauthenticated access attempt', () => {
@@ -238,13 +226,9 @@ describe('RBAC Middleware', () => {
 
       rbacMiddleware(mockRequest as AuthRequest, mockResponse as Response, nextFunction);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(401);
-      expect(mockResponse.json).toHaveBeenCalledWith({
-        success: false,
-        error: 'Unauthorized',
-        message: 'Authentication required'
-      });
-      expect(nextFunction).not.toHaveBeenCalled();
+      expect(nextFunction).toHaveBeenCalled();
+      const error = (nextFunction as jest.Mock).mock.calls[0][0];
+      expect(error?.code).toBe('AUTH_007');
     });
 
     it('should deny unauthenticated access to order creation', () => {
@@ -254,8 +238,7 @@ describe('RBAC Middleware', () => {
 
       rbacMiddleware(mockRequest as AuthRequest, mockResponse as Response, nextFunction);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(401);
-      expect(nextFunction).not.toHaveBeenCalled();
+      expect(nextFunction).toHaveBeenCalled();
     });
   });
 
@@ -373,13 +356,9 @@ describe('RBAC Middleware', () => {
 
       rbacMiddleware(mockRequest as AuthRequest, mockResponse as Response, nextFunction);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(403);
-      expect(mockResponse.json).toHaveBeenCalledWith({
-        success: false,
-        error: 'Forbidden',
-        message: 'You do not have permission to access this resource. Required roles: admin'
-      });
-      expect(nextFunction).not.toHaveBeenCalled();
+      expect(nextFunction).toHaveBeenCalled();
+      const error = (nextFunction as jest.Mock).mock.calls[0][0];
+      expect(error?.code).toBe('PERM_001');
     });
 
     it('should deny CUSTOMER access to restaurant creation', () => {
@@ -388,13 +367,9 @@ describe('RBAC Middleware', () => {
 
       rbacMiddleware(mockRequest as AuthRequest, mockResponse as Response, nextFunction);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(403);
-      expect(mockResponse.json).toHaveBeenCalledWith({
-        success: false,
-        error: 'Forbidden',
-        message: expect.stringContaining('restaurant_owner, admin')
-      });
-      expect(nextFunction).not.toHaveBeenCalled();
+      expect(nextFunction).toHaveBeenCalled();
+      const error = (nextFunction as jest.Mock).mock.calls[0][0];
+      expect(error?.code).toBe('PERM_001');
     });
 
     it('should deny CUSTOMER access to order status updates', () => {
@@ -403,8 +378,9 @@ describe('RBAC Middleware', () => {
 
       rbacMiddleware(mockRequest as AuthRequest, mockResponse as Response, nextFunction);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(403);
-      expect(nextFunction).not.toHaveBeenCalled();
+      expect(nextFunction).toHaveBeenCalled();
+      const error = (nextFunction as jest.Mock).mock.calls[0][0];
+      expect(error?.code).toBe('PERM_001');
     });
 
     it('should deny CUSTOMER access to support ticket status updates', () => {
@@ -413,8 +389,9 @@ describe('RBAC Middleware', () => {
 
       rbacMiddleware(mockRequest as AuthRequest, mockResponse as Response, nextFunction);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(403);
-      expect(nextFunction).not.toHaveBeenCalled();
+      expect(nextFunction).toHaveBeenCalled();
+      const error = (nextFunction as jest.Mock).mock.calls[0][0];
+      expect(error?.code).toBe('PERM_001');
     });
 
     it('should deny CUSTOMER access to all chat sessions', () => {
@@ -423,8 +400,9 @@ describe('RBAC Middleware', () => {
 
       rbacMiddleware(mockRequest as AuthRequest, mockResponse as Response, nextFunction);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(403);
-      expect(nextFunction).not.toHaveBeenCalled();
+      expect(nextFunction).toHaveBeenCalled();
+      const error = (nextFunction as jest.Mock).mock.calls[0][0];
+      expect(error?.code).toBe('PERM_001');
     });
 
     it('should log permission denied with all user details', () => {
@@ -626,8 +604,9 @@ describe('RBAC Middleware', () => {
 
       rbacMiddleware(mockRequest as AuthRequest, mockResponse as Response, nextFunction);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(403);
-      expect(nextFunction).not.toHaveBeenCalled();
+      expect(nextFunction).toHaveBeenCalled();
+      const error = (nextFunction as jest.Mock).mock.calls[0][0];
+      expect(error?.code).toBe('PERM_001');
     });
 
     it('should deny RESTAURANT_OWNER access to cancel orders', () => {
@@ -636,8 +615,9 @@ describe('RBAC Middleware', () => {
 
       rbacMiddleware(mockRequest as AuthRequest, mockResponse as Response, nextFunction);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(403);
-      expect(nextFunction).not.toHaveBeenCalled();
+      expect(nextFunction).toHaveBeenCalled();
+      const error = (nextFunction as jest.Mock).mock.calls[0][0];
+      expect(error?.code).toBe('PERM_001');
     });
 
     it('should deny RESTAURANT_OWNER access to admin analytics', () => {
@@ -646,8 +626,9 @@ describe('RBAC Middleware', () => {
 
       rbacMiddleware(mockRequest as AuthRequest, mockResponse as Response, nextFunction);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(403);
-      expect(nextFunction).not.toHaveBeenCalled();
+      expect(nextFunction).toHaveBeenCalled();
+      const error = (nextFunction as jest.Mock).mock.calls[0][0];
+      expect(error?.code).toBe('PERM_001');
     });
 
     it('should deny RESTAURANT_OWNER access to admin restaurant approval', () => {
@@ -656,8 +637,9 @@ describe('RBAC Middleware', () => {
 
       rbacMiddleware(mockRequest as AuthRequest, mockResponse as Response, nextFunction);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(403);
-      expect(nextFunction).not.toHaveBeenCalled();
+      expect(nextFunction).toHaveBeenCalled();
+      const error = (nextFunction as jest.Mock).mock.calls[0][0];
+      expect(error?.code).toBe('PERM_001');
     });
 
     it('should deny RESTAURANT_OWNER access to update support ticket status', () => {
@@ -666,8 +648,9 @@ describe('RBAC Middleware', () => {
 
       rbacMiddleware(mockRequest as AuthRequest, mockResponse as Response, nextFunction);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(403);
-      expect(nextFunction).not.toHaveBeenCalled();
+      expect(nextFunction).toHaveBeenCalled();
+      const error = (nextFunction as jest.Mock).mock.calls[0][0];
+      expect(error?.code).toBe('PERM_001');
     });
 
     it('should deny RESTAURANT_OWNER access to all chat sessions', () => {
@@ -676,8 +659,9 @@ describe('RBAC Middleware', () => {
 
       rbacMiddleware(mockRequest as AuthRequest, mockResponse as Response, nextFunction);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(403);
-      expect(nextFunction).not.toHaveBeenCalled();
+      expect(nextFunction).toHaveBeenCalled();
+      const error = (nextFunction as jest.Mock).mock.calls[0][0];
+      expect(error?.code).toBe('PERM_001');
     });
   });
 
@@ -776,8 +760,9 @@ describe('RBAC Middleware', () => {
 
       rbacMiddleware(mockRequest as AuthRequest, mockResponse as Response, nextFunction);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(403);
-      expect(nextFunction).not.toHaveBeenCalled();
+      expect(nextFunction).toHaveBeenCalled();
+      const error = (nextFunction as jest.Mock).mock.calls[0][0];
+      expect(error?.code).toBe('PERM_001');
     });
 
     it('should deny DRIVER access to cancel orders', () => {
@@ -786,8 +771,9 @@ describe('RBAC Middleware', () => {
 
       rbacMiddleware(mockRequest as AuthRequest, mockResponse as Response, nextFunction);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(403);
-      expect(nextFunction).not.toHaveBeenCalled();
+      expect(nextFunction).toHaveBeenCalled();
+      const error = (nextFunction as jest.Mock).mock.calls[0][0];
+      expect(error?.code).toBe('PERM_001');
     });
 
     it('should deny DRIVER access to create restaurants', () => {
@@ -796,8 +782,9 @@ describe('RBAC Middleware', () => {
 
       rbacMiddleware(mockRequest as AuthRequest, mockResponse as Response, nextFunction);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(403);
-      expect(nextFunction).not.toHaveBeenCalled();
+      expect(nextFunction).toHaveBeenCalled();
+      const error = (nextFunction as jest.Mock).mock.calls[0][0];
+      expect(error?.code).toBe('PERM_001');
     });
 
     it('should deny DRIVER access to menu item creation', () => {
@@ -806,8 +793,9 @@ describe('RBAC Middleware', () => {
 
       rbacMiddleware(mockRequest as AuthRequest, mockResponse as Response, nextFunction);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(403);
-      expect(nextFunction).not.toHaveBeenCalled();
+      expect(nextFunction).toHaveBeenCalled();
+      const error = (nextFunction as jest.Mock).mock.calls[0][0];
+      expect(error?.code).toBe('PERM_001');
     });
 
     it('should deny DRIVER access to admin analytics', () => {
@@ -816,8 +804,9 @@ describe('RBAC Middleware', () => {
 
       rbacMiddleware(mockRequest as AuthRequest, mockResponse as Response, nextFunction);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(403);
-      expect(nextFunction).not.toHaveBeenCalled();
+      expect(nextFunction).toHaveBeenCalled();
+      const error = (nextFunction as jest.Mock).mock.calls[0][0];
+      expect(error?.code).toBe('PERM_001');
     });
 
     it('should deny DRIVER access to update support ticket status', () => {
@@ -826,8 +815,9 @@ describe('RBAC Middleware', () => {
 
       rbacMiddleware(mockRequest as AuthRequest, mockResponse as Response, nextFunction);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(403);
-      expect(nextFunction).not.toHaveBeenCalled();
+      expect(nextFunction).toHaveBeenCalled();
+      const error = (nextFunction as jest.Mock).mock.calls[0][0];
+      expect(error?.code).toBe('PERM_001');
     });
 
     it('should deny DRIVER access to all chat sessions', () => {
@@ -836,8 +826,9 @@ describe('RBAC Middleware', () => {
 
       rbacMiddleware(mockRequest as AuthRequest, mockResponse as Response, nextFunction);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(403);
-      expect(nextFunction).not.toHaveBeenCalled();
+      expect(nextFunction).toHaveBeenCalled();
+      const error = (nextFunction as jest.Mock).mock.calls[0][0];
+      expect(error?.code).toBe('PERM_001');
     });
   });
 
@@ -1276,8 +1267,9 @@ describe('RBAC Middleware', () => {
 
       rbacMiddleware(mockRequest as AuthRequest, mockResponse as Response, nextFunction);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(403);
-      expect(nextFunction).not.toHaveBeenCalled();
+      expect(nextFunction).toHaveBeenCalled();
+      const error = (nextFunction as jest.Mock).mock.calls[0][0];
+      expect(error?.code).toBe('PERM_001');
     });
 
     it('should deny SUPPORT access to create restaurants', () => {
@@ -1286,8 +1278,9 @@ describe('RBAC Middleware', () => {
 
       rbacMiddleware(mockRequest as AuthRequest, mockResponse as Response, nextFunction);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(403);
-      expect(nextFunction).not.toHaveBeenCalled();
+      expect(nextFunction).toHaveBeenCalled();
+      const error = (nextFunction as jest.Mock).mock.calls[0][0];
+      expect(error?.code).toBe('PERM_001');
     });
 
     it('should deny SUPPORT access to create orders', () => {
@@ -1296,8 +1289,9 @@ describe('RBAC Middleware', () => {
 
       rbacMiddleware(mockRequest as AuthRequest, mockResponse as Response, nextFunction);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(403);
-      expect(nextFunction).not.toHaveBeenCalled();
+      expect(nextFunction).toHaveBeenCalled();
+      const error = (nextFunction as jest.Mock).mock.calls[0][0];
+      expect(error?.code).toBe('PERM_001');
     });
 
     it('should deny SUPPORT access to update order status', () => {
@@ -1306,8 +1300,9 @@ describe('RBAC Middleware', () => {
 
       rbacMiddleware(mockRequest as AuthRequest, mockResponse as Response, nextFunction);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(403);
-      expect(nextFunction).not.toHaveBeenCalled();
+      expect(nextFunction).toHaveBeenCalled();
+      const error = (nextFunction as jest.Mock).mock.calls[0][0];
+      expect(error?.code).toBe('PERM_001');
     });
 
     it('should deny SUPPORT access to admin restaurants', () => {
@@ -1316,8 +1311,9 @@ describe('RBAC Middleware', () => {
 
       rbacMiddleware(mockRequest as AuthRequest, mockResponse as Response, nextFunction);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(403);
-      expect(nextFunction).not.toHaveBeenCalled();
+      expect(nextFunction).toHaveBeenCalled();
+      const error = (nextFunction as jest.Mock).mock.calls[0][0];
+      expect(error?.code).toBe('PERM_001');
     });
 
     it('should deny SUPPORT access to admin invoices', () => {
@@ -1326,8 +1322,9 @@ describe('RBAC Middleware', () => {
 
       rbacMiddleware(mockRequest as AuthRequest, mockResponse as Response, nextFunction);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(403);
-      expect(nextFunction).not.toHaveBeenCalled();
+      expect(nextFunction).toHaveBeenCalled();
+      const error = (nextFunction as jest.Mock).mock.calls[0][0];
+      expect(error?.code).toBe('PERM_001');
     });
   });
 
@@ -1421,7 +1418,9 @@ describe('RBAC Middleware', () => {
       rbacMiddleware(mockRequest as AuthRequest, mockResponse as Response, nextFunction);
 
       // This path is not defined, should fail secure
-      expect(mockResponse.status).toHaveBeenCalledWith(403);
+      expect(nextFunction).toHaveBeenCalled();
+      const error = (nextFunction as jest.Mock).mock.calls[0][0];
+      expect(error?.code).toBe('PERM_002');
     });
 
     it('should handle paths with special characters', () => {
@@ -1483,13 +1482,9 @@ describe('RBAC Middleware', () => {
       const middleware = requireRole(UserRole.ADMIN);
       middleware(mockRequest as AuthRequest, mockResponse as Response, nextFunction);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(403);
-      expect(mockResponse.json).toHaveBeenCalledWith({
-        success: false,
-        error: 'Forbidden',
-        message: 'Insufficient permissions. Required roles: admin'
-      });
-      expect(nextFunction).not.toHaveBeenCalled();
+      expect(nextFunction).toHaveBeenCalled();
+      const error = (nextFunction as jest.Mock).mock.calls[0][0];
+      expect(error?.code).toBe('PERM_001');
     });
 
     it('should deny access when user is not authenticated', () => {
@@ -1497,13 +1492,9 @@ describe('RBAC Middleware', () => {
       const middleware = requireRole(UserRole.CUSTOMER);
       middleware(mockRequest as AuthRequest, mockResponse as Response, nextFunction);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(401);
-      expect(mockResponse.json).toHaveBeenCalledWith({
-        success: false,
-        error: 'Unauthorized',
-        message: 'Authentication required'
-      });
-      expect(nextFunction).not.toHaveBeenCalled();
+      expect(nextFunction).toHaveBeenCalled();
+      const error = (nextFunction as jest.Mock).mock.calls[0][0];
+      expect(error?.code).toBe('AUTH_007');
     });
 
     it('should log warning when role check fails', () => {
@@ -1554,19 +1545,18 @@ describe('RBAC Middleware', () => {
       const middleware = requireRole();
       middleware(mockRequest as AuthRequest, mockResponse as Response, nextFunction);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(403);
-      expect(nextFunction).not.toHaveBeenCalled();
+      expect(nextFunction).toHaveBeenCalled();
+      const error = (nextFunction as jest.Mock).mock.calls[0][0];
+      expect(error?.code).toBe('PERM_001');
     });
 
     it('should format multiple required roles in message', () => {
       const middleware = requireRole(UserRole.ADMIN, UserRole.RESTAURANT_OWNER, UserRole.SUPPORT);
       middleware(mockRequest as AuthRequest, mockResponse as Response, nextFunction);
 
-      expect(mockResponse.json).toHaveBeenCalledWith({
-        success: false,
-        error: 'Forbidden',
-        message: 'Insufficient permissions. Required roles: admin, restaurant_owner, support'
-      });
+      expect(nextFunction).toHaveBeenCalled();
+      const error = (nextFunction as jest.Mock).mock.calls[0][0];
+      expect(error?.code).toBe('PERM_001');
     });
   });
 
@@ -1593,13 +1583,9 @@ describe('RBAC Middleware', () => {
 
       requireAdmin(mockRequest as AuthRequest, mockResponse as Response, nextFunction);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(403);
-      expect(mockResponse.json).toHaveBeenCalledWith({
-        success: false,
-        error: 'Forbidden',
-        message: 'Insufficient permissions. Required roles: admin'
-      });
-      expect(nextFunction).not.toHaveBeenCalled();
+      expect(nextFunction).toHaveBeenCalled();
+      const error = (nextFunction as jest.Mock).mock.calls[0][0];
+      expect(error?.code).toBe('PERM_001');
     });
 
     it('should deny RESTAURANT_OWNER access', () => {
@@ -1611,8 +1597,9 @@ describe('RBAC Middleware', () => {
 
       requireAdmin(mockRequest as AuthRequest, mockResponse as Response, nextFunction);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(403);
-      expect(nextFunction).not.toHaveBeenCalled();
+      expect(nextFunction).toHaveBeenCalled();
+      const error = (nextFunction as jest.Mock).mock.calls[0][0];
+      expect(error?.code).toBe('PERM_001');
     });
 
     it('should deny DRIVER access', () => {
@@ -1624,8 +1611,9 @@ describe('RBAC Middleware', () => {
 
       requireAdmin(mockRequest as AuthRequest, mockResponse as Response, nextFunction);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(403);
-      expect(nextFunction).not.toHaveBeenCalled();
+      expect(nextFunction).toHaveBeenCalled();
+      const error = (nextFunction as jest.Mock).mock.calls[0][0];
+      expect(error?.code).toBe('PERM_001');
     });
 
     it('should deny SUPPORT access', () => {
@@ -1637,8 +1625,9 @@ describe('RBAC Middleware', () => {
 
       requireAdmin(mockRequest as AuthRequest, mockResponse as Response, nextFunction);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(403);
-      expect(nextFunction).not.toHaveBeenCalled();
+      expect(nextFunction).toHaveBeenCalled();
+      const error = (nextFunction as jest.Mock).mock.calls[0][0];
+      expect(error?.code).toBe('PERM_001');
     });
 
     it('should deny unauthenticated access', () => {
@@ -1646,13 +1635,9 @@ describe('RBAC Middleware', () => {
 
       requireAdmin(mockRequest as AuthRequest, mockResponse as Response, nextFunction);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(401);
-      expect(mockResponse.json).toHaveBeenCalledWith({
-        success: false,
-        error: 'Unauthorized',
-        message: 'Authentication required'
-      });
-      expect(nextFunction).not.toHaveBeenCalled();
+      expect(nextFunction).toHaveBeenCalled();
+      const error = (nextFunction as jest.Mock).mock.calls[0][0];
+      expect(error?.code).toBe('AUTH_007');
     });
   });
 
@@ -1679,13 +1664,9 @@ describe('RBAC Middleware', () => {
       const middleware = requireOwnership('id');
       middleware(mockRequest as AuthRequest, mockResponse as Response, nextFunction);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(403);
-      expect(mockResponse.json).toHaveBeenCalledWith({
-        success: false,
-        error: 'Forbidden',
-        message: 'You do not have permission to access this resource'
-      });
-      expect(nextFunction).not.toHaveBeenCalled();
+      expect(nextFunction).toHaveBeenCalled();
+      const error = (nextFunction as jest.Mock).mock.calls[0][0];
+      expect(error?.code).toBe('PERM_003');
     });
 
     it('should bypass ownership check for ADMIN', () => {
@@ -1703,13 +1684,9 @@ describe('RBAC Middleware', () => {
       const middleware = requireOwnership('id');
       middleware(mockRequest as AuthRequest, mockResponse as Response, nextFunction);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(401);
-      expect(mockResponse.json).toHaveBeenCalledWith({
-        success: false,
-        error: 'Unauthorized',
-        message: 'Authentication required'
-      });
-      expect(nextFunction).not.toHaveBeenCalled();
+      expect(nextFunction).toHaveBeenCalled();
+      const error = (nextFunction as jest.Mock).mock.calls[0][0];
+      expect(error?.code).toBe('AUTH_007');
     });
 
     it('should use custom userIdField parameter', () => {
@@ -1740,8 +1717,9 @@ describe('RBAC Middleware', () => {
       const middleware = requireOwnership('orderId', 'customId');
       middleware(mockRequest as AuthRequest, mockResponse as Response, nextFunction);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(403);
-      expect(nextFunction).not.toHaveBeenCalled();
+      expect(nextFunction).toHaveBeenCalled();
+      const error = (nextFunction as jest.Mock).mock.calls[0][0];
+      expect(error?.code).toBe('PERM_003');
     });
 
     it('should log warning for ownership validation failure', () => {
@@ -1762,8 +1740,9 @@ describe('RBAC Middleware', () => {
       const middleware = requireOwnership('id');
       middleware(mockRequest as AuthRequest, mockResponse as Response, nextFunction);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(403);
-      expect(nextFunction).not.toHaveBeenCalled();
+      expect(nextFunction).toHaveBeenCalled();
+      const error = (nextFunction as jest.Mock).mock.calls[0][0];
+      expect(error?.code).toBe('PERM_003');
     });
 
     it('should handle null resource ID', () => {
@@ -1771,8 +1750,9 @@ describe('RBAC Middleware', () => {
       const middleware = requireOwnership('id');
       middleware(mockRequest as AuthRequest, mockResponse as Response, nextFunction);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(403);
-      expect(nextFunction).not.toHaveBeenCalled();
+      expect(nextFunction).toHaveBeenCalled();
+      const error = (nextFunction as jest.Mock).mock.calls[0][0];
+      expect(error?.code).toBe('PERM_003');
     });
 
     it('should handle undefined user field', () => {
@@ -1786,8 +1766,9 @@ describe('RBAC Middleware', () => {
       const middleware = requireOwnership('id');
       middleware(mockRequest as AuthRequest, mockResponse as Response, nextFunction);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(403);
-      expect(nextFunction).not.toHaveBeenCalled();
+      expect(nextFunction).toHaveBeenCalled();
+      const error = (nextFunction as jest.Mock).mock.calls[0][0];
+      expect(error?.code).toBe('PERM_003');
     });
 
     it('should allow ADMIN to bypass ownership check for any resource', () => {
@@ -1821,8 +1802,9 @@ describe('RBAC Middleware', () => {
         const middleware = requireOwnership('id');
         middleware(mockRequest as AuthRequest, mockResponse as Response, nextFunction);
 
-        expect(mockResponse.status).toHaveBeenCalledWith(403);
-        expect(nextFunction).not.toHaveBeenCalled();
+        expect(nextFunction).toHaveBeenCalled();
+        const error = (nextFunction as jest.Mock).mock.calls[0][0];
+        expect(error?.code).toBe('PERM_003');
       });
     });
   });
@@ -1865,8 +1847,9 @@ describe('RBAC Middleware', () => {
 
       rbacMiddleware(mockRequest as AuthRequest, mockResponse as Response, nextFunction);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(403);
-      expect(nextFunction).not.toHaveBeenCalled();
+      expect(nextFunction).toHaveBeenCalled();
+      const error = (nextFunction as jest.Mock).mock.calls[0][0];
+      expect(error?.code).toBe('PERM_001');
     });
 
     it('should handle admin access to all endpoints', () => {

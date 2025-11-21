@@ -65,13 +65,13 @@ export class MenuController {
     );
 
     if (ownerCheck.rows.length === 0) {
-      throw new AppError('Restaurant not found', 404);
+      throw new AppError('REST_001');
     }
 
     const restaurant = ownerCheck.rows[0];
 
     if (restaurant.owner_id !== req.user!.userId && req.user!.role !== UserRole.ADMIN) {
-      throw new AppError('Forbidden', 403);
+      throw new AppError('REST_006');
     }
 
     const {
@@ -114,13 +114,13 @@ export class MenuController {
     );
 
     if (checkResult.rows.length === 0) {
-      throw new AppError('Menu item not found', 404);
+      throw new AppError('MENU_001');
     }
 
     const { owner_id } = checkResult.rows[0];
 
     if (owner_id !== req.user!.userId && req.user!.role !== UserRole.ADMIN) {
-      throw new AppError('Forbidden', 403);
+      throw new AppError('REST_006');
     }
 
     // Whitelist of allowed update fields
@@ -135,7 +135,7 @@ export class MenuController {
     }
 
     if (Object.keys(updates).length === 0) {
-      throw new AppError('No valid fields to update', 400);
+      throw new AppError('VAL_001', { reason: 'No valid fields to update' });
     }
 
     // Build update query with whitelisted fields
@@ -170,13 +170,13 @@ export class MenuController {
     );
 
     if (checkResult.rows.length === 0) {
-      throw new AppError('Menu item not found', 404);
+      throw new AppError('MENU_001');
     }
 
     const { owner_id } = checkResult.rows[0];
 
     if (owner_id !== req.user!.userId && req.user!.role !== UserRole.ADMIN) {
-      throw new AppError('Forbidden', 403);
+      throw new AppError('REST_006');
     }
 
     await pool.query('DELETE FROM menu_items WHERE id = $1', [id]);
@@ -201,13 +201,13 @@ export class MenuController {
     );
 
     if (checkResult.rows.length === 0) {
-      throw new AppError('Menu item not found', 404);
+      throw new AppError('MENU_001');
     }
 
     const { owner_id } = checkResult.rows[0];
 
     if (owner_id !== req.user!.userId && req.user!.role !== UserRole.ADMIN) {
-      throw new AppError('Forbidden', 403);
+      throw new AppError('REST_006');
     }
 
     const result = await pool.query(
@@ -237,13 +237,13 @@ export class MenuController {
     );
 
     if (checkResult.rows.length === 0) {
-      throw new AppError('Menu item not found', 404);
+      throw new AppError('MENU_001');
     }
 
     const { owner_id } = checkResult.rows[0];
 
     if (owner_id !== req.user!.userId && req.user!.role !== UserRole.ADMIN) {
-      throw new AppError('Forbidden', 403);
+      throw new AppError('REST_006');
     }
 
     const {

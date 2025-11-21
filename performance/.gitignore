@@ -1,0 +1,13 @@
+# Artillery output files
+*.json
+!package.json
+!package-lock.json
+
+# HTML reports
+*.html
+
+# Log files
+*.log
+
+# OS files
+.DS_Store

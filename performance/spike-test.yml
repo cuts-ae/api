@@ -1,0 +1,138 @@
+config:
+  target: "http://localhost:45000"
+  phases:
+    # Normal load: 10 users/sec for 2 minutes
+    - duration: 120
+      arrivalRate: 10
+      name: "Normal baseline load"
+    # SPIKE: Sudden jump to 500 users/sec for 30 seconds
+    - duration: 30
+      arrivalRate: 500
+      name: "SPIKE - 500 users/sec"
+    # Return to normal: 10 users/sec for 2 minutes
+    - duration: 120
+      arrivalRate: 10
+      name: "Recovery - back to normal"
+    # Second SPIKE: 500 users/sec for 30 seconds
+    - duration: 30
+      arrivalRate: 500
+      name: "SPIKE 2 - 500 users/sec"
+    # Final recovery: 10 users/sec for 1 minute
+    - duration: 60
+      arrivalRate: 10
+      name: "Final recovery"
+  processor: "./test-helpers.js"
+  variables:
+    testEmail: "spiketest@example.com"
+    testPassword: "SpikeTest123!"
+  http:
+    timeout: 15
+  defaults:
+    headers:
+      Content-Type: "application/json"
+  # Measure recovery
+  ensure:
+    maxErrorRate: 10  # Allow errors during spike
+    p99: 3000         # 99th percentile < 3000ms
+  plugins:
+    metrics-by-endpoint:
+      stripQueryString: true
+    expect:
+      outputFormat: "silent"
+
+before:
+  flow:
+    - log: "Starting spike test - Testing sudden traffic bursts"
+
+scenarios:
+  # Focus on most common endpoints during traffic spikes
+  - name: "Spike - Health and status"
+    weight: 10
+    flow:
+      - get:
+          url: "/health"
+          expect:
+            - statusCode: 200
+
+      - get:
+          url: "/"
+          expect:
+            - statusCode: 200
+
+  - name: "Spike - Restaurant listing"
+    weight: 35
+    flow:
+      - get:
+          url: "/api/v1/restaurants"
+          expect:
+            - statusCode:
+                - 200
+                - 500
+                - 503
+          capture:
+            - json: "$[0].id"
+              as: "restaurantId"
+
+      # Try to get specific restaurant
+      - get:
+          url: "/api/v1/restaurants/{{ restaurantId }}"
+          ifTrue: "restaurantId"
+
+  - name: "Spike - Menu browsing"
+    weight: 30
+    flow:
+      - get:
+          url: "/api/v1/menu-items"
+          expect:
+            - statusCode:
+                - 200
+                - 500
+                - 503
+
+      - get:
+          url: "/api/v1/menu-categories"
+          expect:
+            - statusCode:
+                - 200
+                - 500
+                - 503
+
+  - name: "Spike - Quick authentication"
+    weight: 15
+    flow:
+      - post:
+          url: "/api/v1/auth/login"
+          json:
+            email: "spike-{{ $randomNumber(1, 100) }}@example.com"
+            password: "{{ testPassword }}"
+          expect:
+            - statusCode:
+                - 200
+                - 401
+                - 404
+                - 500
+                - 503
+
+  - name: "Spike - Authenticated requests"
+    weight: 10
+    flow:
+      # Login
+      - post:
+          url: "/api/v1/auth/login"
+          json:
+            email: "{{ testEmail }}"
+            password: "{{ testPassword }}"
+          capture:
+            - json: "$.token"
+              as: "authToken"
+
+      # Make authenticated request
+      - get:
+          url: "/api/v1/orders"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          ifTrue: "authToken"
+
+after:
+  flow:
+    - log: "Spike test completed - Verify system recovery metrics"

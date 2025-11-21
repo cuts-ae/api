@@ -1,0 +1,161 @@
+config:
+  target: "http://localhost:45000"
+  phases:
+    # Start with moderate load: 100 users/sec for 1 minute
+    - duration: 60
+      arrivalRate: 100
+      name: "Moderate baseline"
+    # Ramp to high load: 100 to 250 users/sec over 2 minutes
+    - duration: 120
+      arrivalRate: 100
+      rampTo: 250
+      name: "Ramp to high load"
+    # Ramp to extreme load: 250 to 500 users/sec over 2 minutes
+    - duration: 120
+      arrivalRate: 250
+      rampTo: 500
+      name: "Ramp to extreme load"
+    # Sustained extreme load: 500 users/sec for 2 minutes
+    - duration: 120
+      arrivalRate: 500
+      name: "Sustained extreme load"
+    # Cool down: 500 to 100 users/sec over 1 minute
+    - duration: 60
+      arrivalRate: 500
+      rampTo: 100
+      name: "Cool down"
+  processor: "./test-helpers.js"
+  variables:
+    testEmail: "stresstest@example.com"
+    testPassword: "StressTest123!"
+  http:
+    timeout: 15
+  defaults:
+    headers:
+      Content-Type: "application/json"
+  # More lenient thresholds for stress testing
+  ensure:
+    maxErrorRate: 5  # Allow up to 5% errors under stress
+    p99: 2000        # 99th percentile < 2000ms
+  plugins:
+    metrics-by-endpoint:
+      stripQueryString: true
+    expect:
+      outputFormat: "silent"
+
+before:
+  flow:
+    - log: "Starting stress test - Push system to breaking point (100-500 users/sec)"
+
+scenarios:
+  # Mix of all operations with realistic weights
+  - name: "Mixed load - Health checks"
+    weight: 5
+    flow:
+      - get:
+          url: "/health"
+          expect:
+            - statusCode: 200
+
+  - name: "Mixed load - Restaurant browsing"
+    weight: 25
+    flow:
+      - get:
+          url: "/api/v1/restaurants"
+          expect:
+            - statusCode: 200
+          capture:
+            - json: "$[0].id"
+              as: "restaurantId"
+
+      - think: 1
+
+      - get:
+          url: "/api/v1/menu-categories"
+          expect:
+            - statusCode: 200
+
+      - think: 1
+
+      - get:
+          url: "/api/v1/menu-items"
+          expect:
+            - statusCode: 200
+
+  - name: "Mixed load - Menu operations"
+    weight: 20
+    flow:
+      - get:
+          url: "/api/v1/menu-items"
+          expect:
+            - statusCode: 200
+          capture:
+            - json: "$[0].id"
+              as: "menuItemId"
+
+      - get:
+          url: "/api/v1/menu-categories"
+          expect:
+            - statusCode: 200
+
+  - name: "Mixed load - Authentication"
+    weight: 15
+    flow:
+      - post:
+          url: "/api/v1/auth/login"
+          json:
+            email: "stress-{{ $randomNumber(1, 1000) }}@example.com"
+            password: "{{ testPassword }}"
+          expect:
+            - statusCode:
+                - 200
+                - 401
+                - 404
+
+  - name: "Mixed load - Authenticated operations"
+    weight: 20
+    flow:
+      # Try to login
+      - post:
+          url: "/api/v1/auth/login"
+          json:
+            email: "{{ testEmail }}"
+            password: "{{ testPassword }}"
+          capture:
+            - json: "$.token"
+              as: "authToken"
+
+      # Get restaurants
+      - get:
+          url: "/api/v1/restaurants"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          ifTrue: "authToken"
+
+      - think: 1
+
+      # Get orders
+      - get:
+          url: "/api/v1/orders"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          ifTrue: "authToken"
+
+  - name: "Mixed load - Rapid fire requests"
+    weight: 15
+    flow:
+      # Rapid consecutive requests to test connection pooling
+      - loop:
+          - get:
+              url: "/health"
+        count: 5
+
+      - get:
+          url: "/api/v1/restaurants"
+
+      - get:
+          url: "/api/v1/menu-items"
+
+after:
+  flow:
+    - log: "Stress test completed - Check logs for breaking point"

@@ -1,0 +1,208 @@
+config:
+  target: "http://localhost:45000"
+  phases:
+    # Warm-up phase: 10 users/sec for 1 minute
+    - duration: 60
+      arrivalRate: 10
+      name: "Warm-up phase"
+    # Gradual ramp-up: 10 to 50 users/sec over 2 minutes
+    - duration: 120
+      arrivalRate: 10
+      rampTo: 50
+      name: "Ramp-up to moderate load"
+    # Peak load: 50 to 100 users/sec over 2 minutes
+    - duration: 120
+      arrivalRate: 50
+      rampTo: 100
+      name: "Ramp-up to peak load"
+    # Sustained peak: 100 users/sec for 1 minute
+    - duration: 60
+      arrivalRate: 100
+      name: "Sustained peak load"
+  processor: "./test-helpers.js"
+  variables:
+    testEmail: "loadtest@example.com"
+    testPassword: "LoadTest123!"
+  http:
+    timeout: 10
+  defaults:
+    headers:
+      Content-Type: "application/json"
+  # Performance thresholds
+  ensure:
+    maxErrorRate: 1  # Max 1% error rate
+    p95: 500         # 95th percentile response time < 500ms
+    p99: 1000        # 99th percentile response time < 1000ms
+  plugins:
+    metrics-by-endpoint:
+      # Track metrics separately for each endpoint
+      stripQueryString: true
+    expect:
+      outputFormat: "silent"
+
+before:
+  flow:
+    - log: "Starting load test - Gradual ramp from 10 to 100 users/sec"
+
+scenarios:
+  # Public endpoints - no auth required
+  - name: "Health check and public endpoints"
+    weight: 10
+    flow:
+      - get:
+          url: "/health"
+          expect:
+            - statusCode: 200
+            - contentType: json
+            - hasProperty: status
+      - get:
+          url: "/"
+          expect:
+            - statusCode: 200
+            - contentType: json
+
+  # Restaurant browsing - no auth required
+  - name: "Browse restaurants and menus"
+    weight: 30
+    flow:
+      # Get all restaurants
+      - get:
+          url: "/api/v1/restaurants"
+          expect:
+            - statusCode: 200
+            - contentType: json
+          capture:
+            - json: "$[0].id"
+              as: "restaurantId"
+
+      # Get specific restaurant (if available)
+      - get:
+          url: "/api/v1/restaurants/{{ restaurantId }}"
+          ifTrue: "restaurantId"
+          expect:
+            - statusCode:
+                - 200
+                - 404
+
+      # Get menu categories
+      - get:
+          url: "/api/v1/menu-categories"
+          expect:
+            - statusCode: 200
+            - contentType: json
+
+      # Get menu items
+      - get:
+          url: "/api/v1/menu-items"
+          expect:
+            - statusCode: 200
+            - contentType: json
+
+  # Authentication flow
+  - name: "User authentication"
+    weight: 20
+    flow:
+      # Register new user (will likely fail if user exists, which is OK)
+      - post:
+          url: "/api/v1/auth/register"
+          json:
+            email: "loadtest-{{ $randomString() }}@example.com"
+            password: "LoadTest123!"
+            name: "Load Test User"
+            role: "customer"
+          expect:
+            - statusCode:
+                - 200
+                - 201
+                - 400
+                - 409
+
+      # Login
+      - post:
+          url: "/api/v1/auth/login"
+          json:
+            email: "{{ testEmail }}"
+            password: "{{ testPassword }}"
+          capture:
+            - json: "$.token"
+              as: "authToken"
+          expect:
+            - statusCode:
+                - 200
+                - 401
+
+  # Authenticated restaurant operations
+  - name: "Authenticated restaurant operations"
+    weight: 15
+    flow:
+      # Login first
+      - post:
+          url: "/api/v1/auth/login"
+          json:
+            email: "{{ testEmail }}"
+            password: "{{ testPassword }}"
+          capture:
+            - json: "$.token"
+              as: "authToken"
+
+      # Get restaurants with auth
+      - get:
+          url: "/api/v1/restaurants"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          ifTrue: "authToken"
+          expect:
+            - statusCode:
+                - 200
+                - 401
+
+  # Order operations (authenticated)
+  - name: "Order browsing"
+    weight: 15
+    flow:
+      # Login
+      - post:
+          url: "/api/v1/auth/login"
+          json:
+            email: "{{ testEmail }}"
+            password: "{{ testPassword }}"
+          capture:
+            - json: "$.token"
+              as: "authToken"
+
+      # Get orders
+      - get:
+          url: "/api/v1/orders"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          ifTrue: "authToken"
+          expect:
+            - statusCode:
+                - 200
+                - 401
+
+  # Menu item search and filter
+  - name: "Menu item operations"
+    weight: 10
+    flow:
+      # Get menu items
+      - get:
+          url: "/api/v1/menu-items"
+          expect:
+            - statusCode: 200
+          capture:
+            - json: "$[0].id"
+              as: "menuItemId"
+
+      # Get specific menu item (if available)
+      - get:
+          url: "/api/v1/menu-items/{{ menuItemId }}"
+          ifTrue: "menuItemId"
+          expect:
+            - statusCode:
+                - 200
+                - 404
+
+after:
+  flow:
+    - log: "Load test completed"

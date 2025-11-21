@@ -346,7 +346,7 @@ describe('RestaurantController', () => {
 
       await expect(
         RestaurantController.getById(mockRequest as AuthRequest, mockResponse as Response)
-      ).rejects.toThrow(new AppError('Restaurant not found', 404));
+      ).rejects.toThrow(new AppError('REST_001'));
     });
 
     it('should handle database errors', async () => {
@@ -495,7 +495,7 @@ describe('RestaurantController', () => {
 
       await expect(
         RestaurantController.create(mockRequest as AuthRequest, mockResponse as Response)
-      ).rejects.toThrow(new AppError('Restaurant with this name already exists', 400));
+      ).rejects.toThrow(new AppError('REST_002'));
     });
 
     it('should handle database errors during slug check', async () => {
@@ -605,7 +605,7 @@ describe('RestaurantController', () => {
 
       await expect(
         RestaurantController.update(mockRequest as AuthRequest, mockResponse as Response)
-      ).rejects.toThrow(new AppError('Restaurant not found', 404));
+      ).rejects.toThrow(new AppError('REST_001'));
     });
 
     it('should throw 403 when user is not owner and not admin', async () => {
@@ -617,7 +617,7 @@ describe('RestaurantController', () => {
 
       await expect(
         RestaurantController.update(mockRequest as AuthRequest, mockResponse as Response)
-      ).rejects.toThrow(new AppError('Forbidden', 403));
+      ).rejects.toThrow(new AppError('REST_006'));
     });
 
     it('should update single field', async () => {
@@ -767,7 +767,7 @@ describe('RestaurantController', () => {
 
       await expect(
         RestaurantController.updateOperatingStatus(mockRequest as AuthRequest, mockResponse as Response)
-      ).rejects.toThrow(new AppError('Invalid operating status', 400));
+      ).rejects.toThrow(new AppError('REST_003'));
 
       expect(mockQuery).not.toHaveBeenCalled();
     });
@@ -780,7 +780,7 @@ describe('RestaurantController', () => {
 
       await expect(
         RestaurantController.updateOperatingStatus(mockRequest as AuthRequest, mockResponse as Response)
-      ).rejects.toThrow(new AppError('Restaurant not found', 404));
+      ).rejects.toThrow(new AppError('REST_001'));
     });
 
     it('should throw 403 when user is not owner and not admin', async () => {
@@ -792,7 +792,7 @@ describe('RestaurantController', () => {
 
       await expect(
         RestaurantController.updateOperatingStatus(mockRequest as AuthRequest, mockResponse as Response)
-      ).rejects.toThrow(new AppError('Forbidden', 403));
+      ).rejects.toThrow(new AppError('REST_006'));
     });
 
     it('should allow admin to update operating status', async () => {
@@ -967,7 +967,7 @@ describe('RestaurantController', () => {
 
       await expect(
         RestaurantController.getAnalytics(mockRequest as AuthRequest, mockResponse as Response)
-      ).rejects.toThrow(new AppError('Restaurant not found', 404));
+      ).rejects.toThrow(new AppError('REST_001'));
     });
 
     it('should throw 403 when user is not owner and not admin', async () => {
@@ -978,7 +978,7 @@ describe('RestaurantController', () => {
 
       await expect(
         RestaurantController.getAnalytics(mockRequest as AuthRequest, mockResponse as Response)
-      ).rejects.toThrow(new AppError('Forbidden', 403));
+      ).rejects.toThrow(new AppError('REST_006'));
     });
 
     it('should calculate revenue correctly with decimal values', async () => {

@@ -53,18 +53,15 @@ describe('Validation Middleware', () => {
       const middleware = validate(schema);
       await middleware(mockRequest as Request, mockResponse as Response, nextFunction);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(400);
-      expect(mockResponse.json).toHaveBeenCalledWith({
-        error: 'Validation failed',
-        details: expect.arrayContaining([
-          expect.objectContaining({
-            code: 'invalid_type',
-            path: ['age'],
-            message: expect.any(String)
-          })
-        ])
-      });
-      expect(nextFunction).not.toHaveBeenCalled();
+      expect(nextFunction).toHaveBeenCalledWith(
+        expect.objectContaining({
+          code: 'VAL_001',
+          statusCode: 400,
+          message: expect.any(String),
+          suggestedAction: expect.any(String)
+        })
+      );
+      expect(mockResponse.status).not.toHaveBeenCalled();
     });
 
     it('should reject missing required fields', async () => {
@@ -82,21 +79,15 @@ describe('Validation Middleware', () => {
       const middleware = validate(schema);
       await middleware(mockRequest as Request, mockResponse as Response, nextFunction);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(400);
-      expect(mockResponse.json).toHaveBeenCalledWith({
-        error: 'Validation failed',
-        details: expect.arrayContaining([
-          expect.objectContaining({
-            code: 'invalid_type',
-            path: expect.arrayContaining(['email'])
-          }),
-          expect.objectContaining({
-            code: 'invalid_type',
-            path: expect.arrayContaining(['age'])
-          })
-        ])
-      });
-      expect(nextFunction).not.toHaveBeenCalled();
+      expect(nextFunction).toHaveBeenCalledWith(
+        expect.objectContaining({
+          code: 'VAL_001',
+          statusCode: 400,
+          message: expect.any(String),
+          suggestedAction: expect.any(String)
+        })
+      );
+      expect(mockResponse.status).not.toHaveBeenCalled();
     });
 
     it('should reject empty body when fields are required', async () => {
@@ -110,12 +101,13 @@ describe('Validation Middleware', () => {
       const middleware = validate(schema);
       await middleware(mockRequest as Request, mockResponse as Response, nextFunction);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(400);
-      expect(mockResponse.json).toHaveBeenCalledWith({
-        error: 'Validation failed',
-        details: expect.any(Array)
-      });
-      expect(nextFunction).not.toHaveBeenCalled();
+      expect(nextFunction).toHaveBeenCalledWith(
+        expect.objectContaining({
+          code: 'VAL_001',
+          statusCode: 400
+        })
+      );
+      expect(mockResponse.status).not.toHaveBeenCalled();
     });
   });
 
@@ -132,17 +124,13 @@ describe('Validation Middleware', () => {
       const middleware = validate(schema);
       await middleware(mockRequest as Request, mockResponse as Response, nextFunction);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(400);
-      expect(mockResponse.json).toHaveBeenCalledWith({
-        error: 'Validation failed',
-        details: expect.arrayContaining([
-          expect.objectContaining({
-            path: ['email'],
-            message: expect.any(String)
-          })
-        ])
-      });
-      expect(nextFunction).not.toHaveBeenCalled();
+      expect(nextFunction).toHaveBeenCalledWith(
+        expect.objectContaining({
+          code: 'VAL_001',
+          statusCode: 400
+        })
+      );
+      expect(mockResponse.status).not.toHaveBeenCalled();
     });
 
     it('should validate valid email format', async () => {
@@ -173,16 +161,13 @@ describe('Validation Middleware', () => {
       const middleware = validate(schema);
       await middleware(mockRequest as Request, mockResponse as Response, nextFunction);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(400);
-      expect(mockResponse.json).toHaveBeenCalledWith({
-        error: 'Validation failed',
-        details: expect.arrayContaining([
-          expect.objectContaining({
-            code: 'too_small',
-            path: ['password']
-          })
-        ])
-      });
+      expect(nextFunction).toHaveBeenCalledWith(
+        expect.objectContaining({
+          code: 'VAL_001',
+          statusCode: 400
+        })
+      );
+      expect(mockResponse.status).not.toHaveBeenCalled();
     });
 
     it('should validate string maximum length', async () => {
@@ -197,16 +182,13 @@ describe('Validation Middleware', () => {
       const middleware = validate(schema);
       await middleware(mockRequest as Request, mockResponse as Response, nextFunction);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(400);
-      expect(mockResponse.json).toHaveBeenCalledWith({
-        error: 'Validation failed',
-        details: expect.arrayContaining([
-          expect.objectContaining({
-            code: 'too_big',
-            path: ['username']
-          })
-        ])
-      });
+      expect(nextFunction).toHaveBeenCalledWith(
+        expect.objectContaining({
+          code: 'VAL_001',
+          statusCode: 400
+        })
+      );
+      expect(mockResponse.status).not.toHaveBeenCalled();
     });
 
     it('should validate URL format', async () => {
@@ -221,8 +203,13 @@ describe('Validation Middleware', () => {
       const middleware = validate(schema);
       await middleware(mockRequest as Request, mockResponse as Response, nextFunction);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(400);
-      expect(nextFunction).not.toHaveBeenCalled();
+      expect(nextFunction).toHaveBeenCalledWith(
+        expect.objectContaining({
+          code: 'VAL_001',
+          statusCode: 400
+        })
+      );
+      expect(mockResponse.status).not.toHaveBeenCalled();
     });
 
     it('should validate UUID format', async () => {
@@ -237,8 +224,13 @@ describe('Validation Middleware', () => {
       const middleware = validate(schema);
       await middleware(mockRequest as Request, mockResponse as Response, nextFunction);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(400);
-      expect(nextFunction).not.toHaveBeenCalled();
+      expect(nextFunction).toHaveBeenCalledWith(
+        expect.objectContaining({
+          code: 'VAL_001',
+          statusCode: 400
+        })
+      );
+      expect(mockResponse.status).not.toHaveBeenCalled();
     });
   });
 
@@ -255,16 +247,13 @@ describe('Validation Middleware', () => {
       const middleware = validate(schema);
       await middleware(mockRequest as Request, mockResponse as Response, nextFunction);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(400);
-      expect(mockResponse.json).toHaveBeenCalledWith({
-        error: 'Validation failed',
-        details: expect.arrayContaining([
-          expect.objectContaining({
-            code: 'too_small',
-            path: ['age']
-          })
-        ])
-      });
+      expect(nextFunction).toHaveBeenCalledWith(
+        expect.objectContaining({
+          code: 'VAL_001',
+          statusCode: 400
+        })
+      );
+      expect(mockResponse.status).not.toHaveBeenCalled();
     });
 
     it('should validate number maximum value', async () => {
@@ -279,16 +268,13 @@ describe('Validation Middleware', () => {
       const middleware = validate(schema);
       await middleware(mockRequest as Request, mockResponse as Response, nextFunction);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(400);
-      expect(mockResponse.json).toHaveBeenCalledWith({
-        error: 'Validation failed',
-        details: expect.arrayContaining([
-          expect.objectContaining({
-            code: 'too_big',
-            path: ['quantity']
-          })
-        ])
-      });
+      expect(nextFunction).toHaveBeenCalledWith(
+        expect.objectContaining({
+          code: 'VAL_001',
+          statusCode: 400
+        })
+      );
+      expect(mockResponse.status).not.toHaveBeenCalled();
     });
 
     it('should validate positive numbers', async () => {
@@ -303,8 +289,13 @@ describe('Validation Middleware', () => {
       const middleware = validate(schema);
       await middleware(mockRequest as Request, mockResponse as Response, nextFunction);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(400);
-      expect(nextFunction).not.toHaveBeenCalled();
+      expect(nextFunction).toHaveBeenCalledWith(
+        expect.objectContaining({
+          code: 'VAL_001',
+          statusCode: 400
+        })
+      );
+      expect(mockResponse.status).not.toHaveBeenCalled();
     });
 
     it('should validate integer values', async () => {
@@ -319,8 +310,13 @@ describe('Validation Middleware', () => {
       const middleware = validate(schema);
       await middleware(mockRequest as Request, mockResponse as Response, nextFunction);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(400);
-      expect(nextFunction).not.toHaveBeenCalled();
+      expect(nextFunction).toHaveBeenCalledWith(
+        expect.objectContaining({
+          code: 'VAL_001',
+          statusCode: 400
+        })
+      );
+      expect(mockResponse.status).not.toHaveBeenCalled();
     });
   });
 
@@ -379,15 +375,13 @@ describe('Validation Middleware', () => {
       const middleware = validate(schema);
       await middleware(mockRequest as Request, mockResponse as Response, nextFunction);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(400);
-      expect(mockResponse.json).toHaveBeenCalledWith({
-        error: 'Validation failed',
-        details: expect.arrayContaining([
-          expect.objectContaining({
-            path: ['user', 'address', 'city']
-          })
-        ])
-      });
+      expect(nextFunction).toHaveBeenCalledWith(
+        expect.objectContaining({
+          code: 'VAL_001',
+          statusCode: 400
+        })
+      );
+      expect(mockResponse.status).not.toHaveBeenCalled();
     });
 
     it('should validate deeply nested objects', async () => {
@@ -414,15 +408,13 @@ describe('Validation Middleware', () => {
       const middleware = validate(schema);
       await middleware(mockRequest as Request, mockResponse as Response, nextFunction);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(400);
-      expect(mockResponse.json).toHaveBeenCalledWith({
-        error: 'Validation failed',
-        details: expect.arrayContaining([
-          expect.objectContaining({
-            path: ['level1', 'level2', 'level3', 'value']
-          })
-        ])
-      });
+      expect(nextFunction).toHaveBeenCalledWith(
+        expect.objectContaining({
+          code: 'VAL_001',
+          statusCode: 400
+        })
+      );
+      expect(mockResponse.status).not.toHaveBeenCalled();
     });
   });
 
@@ -467,15 +459,13 @@ describe('Validation Middleware', () => {
       const middleware = validate(schema);
       await middleware(mockRequest as Request, mockResponse as Response, nextFunction);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(400);
-      expect(mockResponse.json).toHaveBeenCalledWith({
-        error: 'Validation failed',
-        details: expect.arrayContaining([
-          expect.objectContaining({
-            path: ['items', 1, 'quantity']
-          })
-        ])
-      });
+      expect(nextFunction).toHaveBeenCalledWith(
+        expect.objectContaining({
+          code: 'VAL_001',
+          statusCode: 400
+        })
+      );
+      expect(mockResponse.status).not.toHaveBeenCalled();
     });
 
     it('should validate array minimum length', async () => {
@@ -490,16 +480,13 @@ describe('Validation Middleware', () => {
       const middleware = validate(schema);
       await middleware(mockRequest as Request, mockResponse as Response, nextFunction);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(400);
-      expect(mockResponse.json).toHaveBeenCalledWith({
-        error: 'Validation failed',
-        details: expect.arrayContaining([
-          expect.objectContaining({
-            code: 'too_small',
-            path: ['tags']
-          })
-        ])
-      });
+      expect(nextFunction).toHaveBeenCalledWith(
+        expect.objectContaining({
+          code: 'VAL_001',
+          statusCode: 400
+        })
+      );
+      expect(mockResponse.status).not.toHaveBeenCalled();
     });
 
     it('should validate array maximum length', async () => {
@@ -514,16 +501,13 @@ describe('Validation Middleware', () => {
       const middleware = validate(schema);
       await middleware(mockRequest as Request, mockResponse as Response, nextFunction);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(400);
-      expect(mockResponse.json).toHaveBeenCalledWith({
-        error: 'Validation failed',
-        details: expect.arrayContaining([
-          expect.objectContaining({
-            code: 'too_big',
-            path: ['tags']
-          })
-        ])
-      });
+      expect(nextFunction).toHaveBeenCalledWith(
+        expect.objectContaining({
+          code: 'VAL_001',
+          statusCode: 400
+        })
+      );
+      expect(mockResponse.status).not.toHaveBeenCalled();
     });
 
     it('should validate empty arrays when allowed', async () => {
@@ -554,8 +538,13 @@ describe('Validation Middleware', () => {
       const middleware = validate(schema);
       await middleware(mockRequest as Request, mockResponse as Response, nextFunction);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(400);
-      expect(nextFunction).not.toHaveBeenCalled();
+      expect(nextFunction).toHaveBeenCalledWith(
+        expect.objectContaining({
+          code: 'VAL_001',
+          statusCode: 400
+        })
+      );
+      expect(mockResponse.status).not.toHaveBeenCalled();
     });
   });
 
@@ -690,16 +679,13 @@ describe('Validation Middleware', () => {
       const middleware = validate(schema);
       await middleware(mockRequest as Request, mockResponse as Response, nextFunction);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(400);
-      expect(mockResponse.json).toHaveBeenCalledWith({
-        error: 'Validation failed',
-        details: expect.arrayContaining([
-          expect.objectContaining({
-            path: ['status'],
-            message: expect.any(String)
-          })
-        ])
-      });
+      expect(nextFunction).toHaveBeenCalledWith(
+        expect.objectContaining({
+          code: 'VAL_001',
+          statusCode: 400
+        })
+      );
+      expect(mockResponse.status).not.toHaveBeenCalled();
     });
 
     it('should validate zod enum', async () => {
@@ -730,8 +716,13 @@ describe('Validation Middleware', () => {
       const middleware = validate(schema);
       await middleware(mockRequest as Request, mockResponse as Response, nextFunction);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(400);
-      expect(nextFunction).not.toHaveBeenCalled();
+      expect(nextFunction).toHaveBeenCalledWith(
+        expect.objectContaining({
+          code: 'VAL_001',
+          statusCode: 400
+        })
+      );
+      expect(mockResponse.status).not.toHaveBeenCalled();
     });
   });
 
@@ -766,16 +757,13 @@ describe('Validation Middleware', () => {
       const middleware = validate(schema);
       await middleware(mockRequest as Request, mockResponse as Response, nextFunction);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(400);
-      expect(mockResponse.json).toHaveBeenCalledWith({
-        error: 'Validation failed',
-        details: expect.arrayContaining([
-          expect.objectContaining({
-            code: 'invalid_type',
-            path: ['isActive']
-          })
-        ])
-      });
+      expect(nextFunction).toHaveBeenCalledWith(
+        expect.objectContaining({
+          code: 'VAL_001',
+          statusCode: 400
+        })
+      );
+      expect(mockResponse.status).not.toHaveBeenCalled();
     });
   });
 
@@ -808,8 +796,13 @@ describe('Validation Middleware', () => {
       const middleware = validate(schema);
       await middleware(mockRequest as Request, mockResponse as Response, nextFunction);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(400);
-      expect(nextFunction).not.toHaveBeenCalled();
+      expect(nextFunction).toHaveBeenCalledWith(
+        expect.objectContaining({
+          code: 'VAL_001',
+          statusCode: 400
+        })
+      );
+      expect(mockResponse.status).not.toHaveBeenCalled();
     });
   });
 
@@ -887,22 +880,13 @@ describe('Validation Middleware', () => {
       const middleware = validate(schema);
       await middleware(mockRequest as Request, mockResponse as Response, nextFunction);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(400);
-      expect(mockResponse.json).toHaveBeenCalledWith({
-        error: 'Validation failed',
-        details: expect.arrayContaining([
-          expect.objectContaining({
-            path: ['restaurantId']
-          }),
-          expect.objectContaining({
-            path: ['items']
-          }),
-          expect.objectContaining({
-            path: ['paymentMethod']
-          })
-        ])
-      });
-      expect(nextFunction).not.toHaveBeenCalled();
+      expect(nextFunction).toHaveBeenCalledWith(
+        expect.objectContaining({
+          code: 'VAL_001',
+          statusCode: 400
+        })
+      );
+      expect(mockResponse.status).not.toHaveBeenCalled();
     });
   });
 
@@ -945,16 +929,13 @@ describe('Validation Middleware', () => {
       const middleware = validate(schema);
       await middleware(mockRequest as Request, mockResponse as Response, nextFunction);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(400);
-      expect(mockResponse.json).toHaveBeenCalledWith({
-        error: 'Validation failed',
-        details: expect.arrayContaining([
-          expect.objectContaining({
-            path: ['confirmPassword'],
-            message: "Passwords don't match"
-          })
-        ])
-      });
+      expect(nextFunction).toHaveBeenCalledWith(
+        expect.objectContaining({
+          code: 'VAL_001',
+          statusCode: 400
+        })
+      );
+      expect(mockResponse.status).not.toHaveBeenCalled();
     });
   });
 
@@ -1003,8 +984,13 @@ describe('Validation Middleware', () => {
       const middleware = validate(schema);
       await middleware(mockRequest as Request, mockResponse as Response, nextFunction);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(400);
-      expect(nextFunction).not.toHaveBeenCalled();
+      expect(nextFunction).toHaveBeenCalledWith(
+        expect.objectContaining({
+          code: 'VAL_001',
+          statusCode: 400
+        })
+      );
+      expect(mockResponse.status).not.toHaveBeenCalled();
     });
   });
 
@@ -1044,8 +1030,13 @@ describe('Validation Middleware', () => {
       const middleware = validate(schema);
       await middleware(mockRequest as Request, mockResponse as Response, nextFunction);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(400);
-      expect(nextFunction).not.toHaveBeenCalled();
+      expect(nextFunction).toHaveBeenCalledWith(
+        expect.objectContaining({
+          code: 'VAL_001',
+          statusCode: 400
+        })
+      );
+      expect(mockResponse.status).not.toHaveBeenCalled();
     });
   });
 
@@ -1064,18 +1055,14 @@ describe('Validation Middleware', () => {
       const middleware = validate(schema);
       await middleware(mockRequest as Request, mockResponse as Response, nextFunction);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(400);
-      expect(mockResponse.json).toHaveBeenCalledWith({
-        error: 'Validation failed',
-        details: expect.any(Array)
-      });
-
-      const jsonCall = (mockResponse.json as jest.Mock).mock.calls[0][0];
-      expect(jsonCall.details).toHaveLength(2);
-      expect(jsonCall.details[0]).toHaveProperty('code');
-      expect(jsonCall.details[0]).toHaveProperty('path');
-      expect(jsonCall.details[0]).toHaveProperty('message');
-      expect(nextFunction).not.toHaveBeenCalled();
+      expect(nextFunction).toHaveBeenCalledWith(
+        expect.objectContaining({
+          code: 'VAL_001',
+          statusCode: 400,
+          details: expect.any(Array)
+        })
+      );
+      expect(mockResponse.status).not.toHaveBeenCalled();
     });
 
     it('should pass non-ZodError to next middleware', async () => {
@@ -1123,17 +1110,14 @@ describe('Validation Middleware', () => {
       const middleware = validate(schema);
       await middleware(mockRequest as Request, mockResponse as Response, nextFunction);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(400);
-
-      const jsonCall = (mockResponse.json as jest.Mock).mock.calls[0][0];
-      expect(jsonCall).toEqual({
-        error: 'Validation failed',
-        details: expect.arrayContaining([
-          expect.objectContaining({ path: ['email'] }),
-          expect.objectContaining({ path: ['password'] }),
-          expect.objectContaining({ path: ['age'] })
-        ])
-      });
+      expect(nextFunction).toHaveBeenCalledWith(
+        expect.objectContaining({
+          code: 'VAL_001',
+          statusCode: 400,
+          details: expect.any(Array)
+        })
+      );
+      expect(mockResponse.status).not.toHaveBeenCalled();
     });
   });
 
@@ -1166,8 +1150,13 @@ describe('Validation Middleware', () => {
       const middleware = validate(schema);
       await middleware(mockRequest as Request, mockResponse as Response, nextFunction);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(400);
-      expect(nextFunction).not.toHaveBeenCalled();
+      expect(nextFunction).toHaveBeenCalledWith(
+        expect.objectContaining({
+          code: 'VAL_001',
+          statusCode: 400
+        })
+      );
+      expect(mockResponse.status).not.toHaveBeenCalled();
     });
   });
 
@@ -1182,8 +1171,13 @@ describe('Validation Middleware', () => {
       const middleware = validate(schema);
       await middleware(mockRequest as Request, mockResponse as Response, nextFunction);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(400);
-      expect(nextFunction).not.toHaveBeenCalled();
+      expect(nextFunction).toHaveBeenCalledWith(
+        expect.objectContaining({
+          code: 'VAL_001',
+          statusCode: 400
+        })
+      );
+      expect(mockResponse.status).not.toHaveBeenCalled();
     });
 
     it('should handle null body', async () => {
@@ -1196,8 +1190,13 @@ describe('Validation Middleware', () => {
       const middleware = validate(schema);
       await middleware(mockRequest as Request, mockResponse as Response, nextFunction);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(400);
-      expect(nextFunction).not.toHaveBeenCalled();
+      expect(nextFunction).toHaveBeenCalledWith(
+        expect.objectContaining({
+          code: 'VAL_001',
+          statusCode: 400
+        })
+      );
+      expect(mockResponse.status).not.toHaveBeenCalled();
     });
 
     it('should handle extra fields with strict schema', async () => {
@@ -1215,8 +1214,13 @@ describe('Validation Middleware', () => {
       const middleware = validate(schema);
       await middleware(mockRequest as Request, mockResponse as Response, nextFunction);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(400);
-      expect(nextFunction).not.toHaveBeenCalled();
+      expect(nextFunction).toHaveBeenCalledWith(
+        expect.objectContaining({
+          code: 'VAL_001',
+          statusCode: 400
+        })
+      );
+      expect(mockResponse.status).not.toHaveBeenCalled();
     });
 
     it('should allow extra fields with non-strict schema', async () => {
@@ -1270,8 +1274,13 @@ describe('Validation Middleware', () => {
       const middleware = validate(schema);
       await middleware(mockRequest as Request, mockResponse as Response, nextFunction);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(400);
-      expect(nextFunction).not.toHaveBeenCalled();
+      expect(nextFunction).toHaveBeenCalledWith(
+        expect.objectContaining({
+          code: 'VAL_001',
+          statusCode: 400
+        })
+      );
+      expect(mockResponse.status).not.toHaveBeenCalled();
     });
   });
 

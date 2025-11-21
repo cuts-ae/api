@@ -89,7 +89,7 @@ export class RestaurantController {
     const restaurant = result.rows[0];
 
     if (!restaurant) {
-      throw new AppError("Restaurant not found", 404);
+      throw new AppError('REST_001');
     }
 
     res.json({ restaurant });
@@ -119,7 +119,7 @@ export class RestaurantController {
     );
 
     if (existing.rows.length > 0) {
-      throw new AppError("Restaurant with this name already exists", 400);
+      throw new AppError('REST_002');
     }
 
     const result = await pool.query(
@@ -161,7 +161,7 @@ export class RestaurantController {
     );
 
     if (ownerCheck.rows.length === 0) {
-      throw new AppError("Restaurant not found", 404);
+      throw new AppError('REST_001');
     }
 
     const restaurant = ownerCheck.rows[0];
@@ -170,7 +170,7 @@ export class RestaurantController {
       restaurant.owner_id !== req.user!.userId &&
       req.user!.role !== UserRole.ADMIN
     ) {
-      throw new AppError("Forbidden", 403);
+      throw new AppError('REST_006');
     }
 
     // Build update query dynamically
@@ -201,7 +201,7 @@ export class RestaurantController {
     // Validate status
     const validStatuses = ['open', 'not_accepting_orders', 'closed'];
     if (!validStatuses.includes(operating_status)) {
-      throw new AppError('Invalid operating status', 400);
+      throw new AppError('REST_003');
     }
 
     // Verify ownership
@@ -211,7 +211,7 @@ export class RestaurantController {
     );
 
     if (ownerCheck.rows.length === 0) {
-      throw new AppError("Restaurant not found", 404);
+      throw new AppError('REST_001');
     }
 
     const restaurant = ownerCheck.rows[0];
@@ -220,7 +220,7 @@ export class RestaurantController {
       restaurant.owner_id !== req.user!.userId &&
       req.user!.role !== UserRole.ADMIN
     ) {
-      throw new AppError("Forbidden", 403);
+      throw new AppError('REST_006');
     }
 
     // Update operating status
@@ -251,7 +251,7 @@ export class RestaurantController {
     );
 
     if (ownerCheck.rows.length === 0) {
-      throw new AppError("Restaurant not found", 404);
+      throw new AppError('REST_001');
     }
 
     const restaurant = ownerCheck.rows[0];
@@ -260,7 +260,7 @@ export class RestaurantController {
       restaurant.owner_id !== req.user!.userId &&
       req.user!.role !== UserRole.ADMIN
     ) {
-      throw new AppError("Forbidden", 403);
+      throw new AppError('REST_006');
     }
 
     // Get today's orders

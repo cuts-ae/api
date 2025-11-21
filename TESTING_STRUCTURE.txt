@@ -1,0 +1,59 @@
+Advanced Testing Suite Structure
+=================================
+
+Configuration Files:
+├── playwright.config.ts         # Playwright E2E test configuration
+├── stryker.conf.json            # Stryker mutation test configuration
+└── jest.config.js               # Jest configuration (existing, supports property tests)
+
+E2E Tests (Playwright):
+e2e/
+├── README.md                    # E2E testing guide
+├── helpers/
+│   ├── api-client.ts            # Reusable API client with auth & methods
+│   └── test-data.ts             # Test data generators (users, restaurants, orders)
+├── customer-order-flow.spec.ts  # Complete customer journey (9 steps)
+├── admin-management-flow.spec.ts # Admin operations & access control (5 steps)
+└── order-cancellation-flow.spec.ts # Order cancellation scenarios (6 scenarios)
+
+Property-Based Tests (fast-check):
+src/__tests__/property/
+├── order-calculations.property.test.ts     # Math properties (10 tests, 100 runs each)
+├── string-sanitization.property.test.ts    # String safety (10 tests, 100 runs each)
+└── date-time.property.test.ts              # Date/time invariants (10 tests, 100 runs each)
+
+Documentation:
+docs/
+├── ADVANCED_TESTING_GUIDE.md        # Comprehensive testing guide (500+ lines)
+└── TESTING_QUICK_REFERENCE.md       # Quick reference & commands
+
+Root Documentation:
+└── ADVANCED_TESTING_SUMMARY.md      # Implementation summary (this file)
+
+NPM Scripts Added:
+├── test:e2e              # Run Playwright E2E tests
+├── test:e2e:ui           # Run E2E tests in interactive UI mode
+├── test:e2e:headed       # Run E2E tests with visible browser
+├── test:e2e:report       # View E2E test HTML report
+├── test:mutation         # Run Stryker mutation tests
+├── test:mutation:report  # View mutation test report
+├── test:property         # Run fast-check property tests
+├── test:security         # Run security tests
+└── test:all              # Run all test types (unit + integration + E2E + property)
+
+Dependencies Installed:
+├── @playwright/test@^1.56.1          # E2E testing framework
+├── @stryker-mutator/core@^9.3.0      # Mutation testing core
+├── @stryker-mutator/jest-runner@^9.3.0 # Jest runner for Stryker
+└── fast-check@^4.3.0                 # Property-based testing library
+
+Test Coverage:
+├── E2E Tests:           3 files, 20 test cases, full user workflows
+├── Property Tests:      3 files, 30+ properties, 3000+ random scenarios
+├── Mutation Testing:    Tests all controllers, middleware, utils
+└── Total New Code:      ~3,300 lines (tests + documentation)
+
+Reports Generated:
+├── playwright-report/    # E2E test results (HTML)
+├── stryker-report/       # Mutation test results (HTML + JSON)
+└── coverage/             # Jest coverage reports (existing)
