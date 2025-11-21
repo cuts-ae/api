@@ -424,7 +424,7 @@ describe('CSRF (Cross-Site Request Forgery) Security Tests', () => {
 
     it('should prevent unauthorized order cancellation', async () => {
       const response = await request(app)
-        .put('/api/v1/orders/123e4567-e89b-12d3-a456-426614174000/cancel');
+        .post('/api/v1/orders/123e4567-e89b-12d3-a456-426614174000/cancel');
 
       expect(response.status).toBe(401);
       expect(response.body.success).toBe(false);
