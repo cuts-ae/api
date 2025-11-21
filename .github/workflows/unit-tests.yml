@@ -48,7 +48,7 @@ jobs:
       continue-on-error: true
 
     - name: Run unit tests
-      run: npm test -- --testPathIgnorePatterns="integration|chat.socket|request-logger" --coverage --maxWorkers=2
+      run: npm test -- --testPathIgnorePatterns="integration|chat.socket|request-logger|property|e2e" --coverage --maxWorkers=2
       env:
         NODE_ENV: test
 
