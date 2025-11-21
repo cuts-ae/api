@@ -15,7 +15,7 @@
     "test:mutation": "stryker run",
     "test:mutation:report": "open stryker-report/mutation-report.html",
     "test:property": "jest --testPathPatterns=property",
-    "test:security": "jest --testPathPatterns=security",
+    "test:security": "jest --testPathPatterns=security --no-coverage",
     "test:chaos": "jest --testPathPatterns=chaos",
     "test:restler": "cd restler && ./run-restler.sh",
     "test:all": "npm run test && npm run test:e2e && npm run test:property",

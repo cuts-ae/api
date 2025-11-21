@@ -44,7 +44,7 @@ jobs:
         EOF
 
     - name: Run authentication bypass tests
-      run: npm test -- auth-bypass.security.test.ts --maxWorkers=2
+      run: npx jest auth-bypass.security.test.ts --maxWorkers=2 --no-coverage
       env:
         NODE_ENV: test
 
@@ -85,7 +85,7 @@ jobs:
         EOF
 
     - name: Run rate limiting tests
-      run: npm test -- rate-limit.security.test.ts --maxWorkers=2
+      run: npx jest rate-limit.security.test.ts --maxWorkers=2 --no-coverage
       env:
         NODE_ENV: test
 
@@ -141,7 +141,7 @@ jobs:
         EOF
 
     - name: Run XSS security tests
-      run: npm test -- xss.security.test.ts --maxWorkers=2
+      run: npx jest xss.security.test.ts --maxWorkers=2 --no-coverage
       env:
         NODE_ENV: test
         DB_HOST: localhost
@@ -202,7 +202,7 @@ jobs:
         EOF
 
     - name: Run SQL injection security tests
-      run: npm test -- sql-injection.security.test.ts --maxWorkers=2
+      run: npx jest sql-injection.security.test.ts --maxWorkers=2 --no-coverage
       env:
         NODE_ENV: test
         DB_HOST: localhost
