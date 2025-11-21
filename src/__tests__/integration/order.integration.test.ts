@@ -313,7 +313,7 @@ describe('Order Routes Integration Tests', () => {
         .send(validOrderData);
 
       expect(response.status).toBe(400);
-      expect(response.body.message || response.body.error).toContain('One or more menu items not found');
+      expect(response.body.message || response.body.error).toContain('Order items not found');
     });
 
     it('should reject order when menu item is unavailable', async () => {
@@ -552,7 +552,7 @@ describe('Order Routes Integration Tests', () => {
 
       expect(response.status).toBe(403);
       const errorMessage = response.body.message || response.body.error;
-      expect(errorMessage).toContain('Forbidden');
+      expect(errorMessage).toContain('Access denied');
     });
 
     it('should return 403 when restaurant owner tries to access order from different restaurant', async () => {
@@ -572,7 +572,7 @@ describe('Order Routes Integration Tests', () => {
 
       expect(response.status).toBe(403);
       const errorMessage = response.body.message || response.body.error;
-      expect(errorMessage).toContain('Forbidden');
+      expect(errorMessage).toContain('Access denied');
     });
 
     it('should reject request without authentication', async () => {
@@ -822,7 +822,7 @@ describe('Order Routes Integration Tests', () => {
 
       expect(response.status).toBe(403);
       const errorMessage = response.body.message || response.body.error;
-      expect(errorMessage).toContain('Forbidden');
+      expect(errorMessage).toContain('Access denied');
     });
 
     it('should return 403 when customer tries to update order status', async () => {
@@ -1057,7 +1057,7 @@ describe('Order Routes Integration Tests', () => {
 
       expect(response.status).toBe(403);
       const errorMessage = response.body.message || response.body.error;
-      expect(errorMessage).toContain('Forbidden');
+      expect(errorMessage).toContain('Access denied');
     });
 
     it('should return 403 when restaurant owner tries to cancel order', async () => {
@@ -1306,14 +1306,14 @@ describe('Order Routes Integration Tests', () => {
   describe('Business Logic Tests', () => {
     it('should calculate fees correctly for different subtotals', async () => {
       const testCases = [
-        { subtotal: 100, expected_service_fee: 5, expected_total: 115 },
-        { subtotal: 200, expected_service_fee: 10, expected_total: 220 },
-        { subtotal: 50, expected_service_fee: 2.5, expected_total: 62.5 }
+        { subtotal: 100, expected_service_fee: 5, expected_total: 115, itemId: 'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d' },
+        { subtotal: 200, expected_service_fee: 10, expected_total: 220, itemId: 'b2c3d4e5-f6a7-4b5c-9d0e-1f2a3b4c5d6e' },
+        { subtotal: 50, expected_service_fee: 2.5, expected_total: 62.5, itemId: 'c3d4e5f6-a7b8-4c5d-9e1f-2a3b4c5d6e7f' }
       ];
 
       for (const testCase of testCases) {
         const mockMenuItem = {
-          id: 'item-test',
+          id: testCase.itemId,
           base_price: testCase.subtotal,
           restaurant_id: restaurantId,
           is_available: true,
@@ -1343,7 +1343,7 @@ describe('Order Routes Integration Tests', () => {
           .post('/api/v1/orders')
           .set('Authorization', `Bearer ${customerToken}`)
           .send({
-            items: [{ menu_item_id: 'item-test', restaurant_id: restaurantId, quantity: 1 }],
+            items: [{ menu_item_id: testCase.itemId, restaurant_id: restaurantId, quantity: 1 }],
             delivery_address: {
               street: '123 Main St',
               city: 'Dubai',

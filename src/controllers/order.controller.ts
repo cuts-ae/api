@@ -297,8 +297,9 @@ export class OrderController {
 
     const order = orderResult.rows[0];
 
-    // Verify authorization
-    if (req.user!.role !== UserRole.ADMIN) {
+    // Verify authorization - Admin and Driver can update any order
+    if (req.user!.role !== UserRole.ADMIN && req.user!.role !== UserRole.DRIVER) {
+      // Restaurant owners can only update orders for their restaurants
       const restaurantCheck = await pool.query(
         'SELECT id FROM restaurants WHERE owner_id = $1 AND id = ANY($2)',
         [req.user!.userId, order.restaurants]

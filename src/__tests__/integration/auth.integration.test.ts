@@ -166,7 +166,7 @@ describe('Auth Routes Integration Tests', () => {
     });
 
     describe('Duplicate email validation', () => {
-      it('should reject registration with existing email and return 400', async () => {
+      it('should reject registration with existing email and return 409', async () => {
         mockPool.query.mockResolvedValueOnce({
           rows: [{ id: 'existing-user-id' }]
         });
@@ -175,9 +175,11 @@ describe('Auth Routes Integration Tests', () => {
           .post('/api/v1/auth/register')
           .send(validRegistrationData)
           .expect('Content-Type', /json/)
-          .expect(400);
+          .expect(409);
 
-        expect(response.body).toHaveProperty('error', 'Email already registered');
+        expect(response.body.success).toBe(false);
+        expect(response.body.code).toBe('USER_002');
+        expect(response.body.message).toBe('User already exists');
       });
     });
 
@@ -188,8 +190,9 @@ describe('Auth Routes Integration Tests', () => {
           .send({ ...validRegistrationData, email: 'invalid-email' })
           .expect(400);
 
-        expect(response.body).toHaveProperty('error', 'Validation failed');
-        expect(response.body).toHaveProperty('details');
+        expect(response.body.success).toBe(false);
+        expect(response.body.error).toBe('Validation Error');
+        expect(response.body.message).toBe('Invalid email format');
       });
 
       it('should reject registration with password shorter than 8 characters', async () => {
@@ -198,7 +201,9 @@ describe('Auth Routes Integration Tests', () => {
           .send({ ...validRegistrationData, password: 'short' })
           .expect(400);
 
-        expect(response.body).toHaveProperty('error', 'Validation failed');
+        expect(response.body.success).toBe(false);
+        expect(response.body.code).toBe('VAL_001');
+        expect(response.body.message).toBe('Request validation failed');
       });
 
       it('should reject registration with first_name shorter than 2 characters', async () => {
@@ -207,7 +212,9 @@ describe('Auth Routes Integration Tests', () => {
           .send({ ...validRegistrationData, first_name: 'J' })
           .expect(400);
 
-        expect(response.body).toHaveProperty('error', 'Validation failed');
+        expect(response.body.success).toBe(false);
+        expect(response.body.code).toBe('VAL_001');
+        expect(response.body.message).toBe('Request validation failed');
       });
 
       it('should reject registration with last_name shorter than 2 characters', async () => {
@@ -216,7 +223,9 @@ describe('Auth Routes Integration Tests', () => {
           .send({ ...validRegistrationData, last_name: 'D' })
           .expect(400);
 
-        expect(response.body).toHaveProperty('error', 'Validation failed');
+        expect(response.body.success).toBe(false);
+        expect(response.body.code).toBe('VAL_001');
+        expect(response.body.message).toBe('Request validation failed');
       });
 
       it('should reject registration with invalid role', async () => {
@@ -225,7 +234,9 @@ describe('Auth Routes Integration Tests', () => {
           .send({ ...validRegistrationData, role: 'invalid_role' })
           .expect(400);
 
-        expect(response.body).toHaveProperty('error', 'Validation failed');
+        expect(response.body.success).toBe(false);
+        expect(response.body.code).toBe('VAL_001');
+        expect(response.body.message).toBe('Request validation failed');
       });
 
       it('should reject registration with missing required fields', async () => {
@@ -240,7 +251,9 @@ describe('Auth Routes Integration Tests', () => {
             .send(invalidData)
             .expect(400);
 
-          expect(response.body).toHaveProperty('error', 'Validation failed');
+          expect(response.body.success).toBe(false);
+          expect(response.body.code).toBe('VAL_001');
+          expect(response.body.message).toBe('Request validation failed');
         }
       });
 
@@ -250,7 +263,9 @@ describe('Auth Routes Integration Tests', () => {
           .send({ ...validRegistrationData, email: '' })
           .expect(400);
 
-        expect(response.body).toHaveProperty('error', 'Validation failed');
+        expect(response.body.success).toBe(false);
+        expect(response.body.code).toBe('VAL_001');
+        expect(response.body.message).toBe('Request validation failed');
       });
 
       it('should reject registration with empty password', async () => {
@@ -259,7 +274,9 @@ describe('Auth Routes Integration Tests', () => {
           .send({ ...validRegistrationData, password: '' })
           .expect(400);
 
-        expect(response.body).toHaveProperty('error', 'Validation failed');
+        expect(response.body.success).toBe(false);
+        expect(response.body.code).toBe('VAL_001');
+        expect(response.body.message).toBe('Request validation failed');
       });
     });
 
@@ -387,7 +404,9 @@ describe('Auth Routes Integration Tests', () => {
           .send(validRegistrationData)
           .expect(500);
 
-        expect(response.body).toHaveProperty('error');
+        expect(response.body.success).toBe(false);
+        expect(response.body.code).toBeDefined();
+        expect(response.body.message).toBeDefined();
       });
 
       it('should return 500 when user insertion fails', async () => {
@@ -400,7 +419,9 @@ describe('Auth Routes Integration Tests', () => {
           .send(validRegistrationData)
           .expect(500);
 
-        expect(response.body).toHaveProperty('error');
+        expect(response.body.success).toBe(false);
+        expect(response.body.code).toBeDefined();
+        expect(response.body.message).toBeDefined();
       });
     });
   });
@@ -498,7 +519,9 @@ describe('Auth Routes Integration Tests', () => {
           .expect('Content-Type', /json/)
           .expect(401);
 
-        expect(response.body).toHaveProperty('error', 'Invalid credentials');
+        expect(response.body.success).toBe(false);
+        expect(response.body.code).toBe('AUTH_004');
+        expect(response.body.message).toBe('Invalid credentials');
       });
 
       it('should reject login with incorrect password and return 401', async () => {
@@ -512,7 +535,9 @@ describe('Auth Routes Integration Tests', () => {
           .expect('Content-Type', /json/)
           .expect(401);
 
-        expect(response.body).toHaveProperty('error', 'Invalid credentials');
+        expect(response.body.success).toBe(false);
+        expect(response.body.code).toBe('AUTH_004');
+        expect(response.body.message).toBe('Invalid credentials');
       });
 
       it('should not update last_login on failed authentication', async () => {
@@ -553,9 +578,11 @@ describe('Auth Routes Integration Tests', () => {
           .send({ ...validLoginData, password: 'WrongPassword' })
           .expect(401);
 
-        // Both should return the same generic error message
-        expect(response1.body.error).toBe(response2.body.error);
-        expect(response1.body.error).toBe('Invalid credentials');
+        // Both should return the same generic error code and message
+        expect(response1.body.code).toBe(response2.body.code);
+        expect(response1.body.code).toBe('AUTH_004');
+        expect(response1.body.message).toBe(response2.body.message);
+        expect(response1.body.message).toBe('Invalid credentials');
       });
     });
 
@@ -566,7 +593,9 @@ describe('Auth Routes Integration Tests', () => {
           .send({ email: 'invalid-email', password: 'password' })
           .expect(400);
 
-        expect(response.body).toHaveProperty('error', 'Validation failed');
+        expect(response.body.success).toBe(false);
+        expect(response.body.error).toBe('Validation Error');
+        expect(response.body.message).toBe('Invalid email format');
       });
 
       it('should reject login with missing email', async () => {
@@ -575,7 +604,9 @@ describe('Auth Routes Integration Tests', () => {
           .send({ password: 'password' })
           .expect(400);
 
-        expect(response.body).toHaveProperty('error', 'Validation failed');
+        expect(response.body.success).toBe(false);
+        expect(response.body.code).toBe('VAL_001');
+        expect(response.body.message).toBe('Request validation failed');
       });
 
       it('should reject login with missing password', async () => {
@@ -584,7 +615,9 @@ describe('Auth Routes Integration Tests', () => {
           .send({ email: 'test@cuts.ae' })
           .expect(400);
 
-        expect(response.body).toHaveProperty('error', 'Validation failed');
+        expect(response.body.success).toBe(false);
+        expect(response.body.code).toBe('VAL_001');
+        expect(response.body.message).toBe('Request validation failed');
       });
 
       it('should reject login with empty email', async () => {
@@ -593,7 +626,9 @@ describe('Auth Routes Integration Tests', () => {
           .send({ email: '', password: 'password' })
           .expect(400);
 
-        expect(response.body).toHaveProperty('error', 'Validation failed');
+        expect(response.body.success).toBe(false);
+        expect(response.body.code).toBe('VAL_001');
+        expect(response.body.message).toBe('Request validation failed');
       });
 
       it('should reject login with empty password', async () => {
@@ -602,7 +637,9 @@ describe('Auth Routes Integration Tests', () => {
           .send({ email: 'test@cuts.ae', password: '' })
           .expect(400);
 
-        expect(response.body).toHaveProperty('error', 'Validation failed');
+        expect(response.body.success).toBe(false);
+        expect(response.body.code).toBe('VAL_001');
+        expect(response.body.message).toBe('Request validation failed');
       });
     });
 
@@ -653,7 +690,9 @@ describe('Auth Routes Integration Tests', () => {
           .send(validLoginData)
           .expect(500);
 
-        expect(response.body).toHaveProperty('error');
+        expect(response.body.success).toBe(false);
+        expect(response.body.code).toBeDefined();
+        expect(response.body.message).toBeDefined();
       });
 
       it('should return 500 when last_login update fails', async () => {
@@ -668,7 +707,9 @@ describe('Auth Routes Integration Tests', () => {
           .send(validLoginData)
           .expect(500);
 
-        expect(response.body).toHaveProperty('error');
+        expect(response.body.success).toBe(false);
+        expect(response.body.code).toBeDefined();
+        expect(response.body.message).toBeDefined();
       });
     });
   });
@@ -768,7 +809,9 @@ describe('Auth Routes Integration Tests', () => {
           .expect('Content-Type', /json/)
           .expect(401);
 
-        expect(response.body).toHaveProperty('error', 'No token provided');
+        expect(response.body.success).toBe(false);
+        expect(response.body.code).toBe('AUTH_007');
+        expect(response.body.message).toBe('Authentication required');
       });
 
       it('should reject request with invalid Authorization header format', async () => {
@@ -777,7 +820,9 @@ describe('Auth Routes Integration Tests', () => {
           .set('Authorization', 'InvalidFormat token123')
           .expect(401);
 
-        expect(response.body).toHaveProperty('error', 'No token provided');
+        expect(response.body.success).toBe(false);
+        expect(response.body.code).toBe('AUTH_007');
+        expect(response.body.message).toBe('Authentication required');
       });
 
       it('should reject request with invalid token and return 401', async () => {
@@ -786,7 +831,9 @@ describe('Auth Routes Integration Tests', () => {
           .set('Authorization', 'Bearer invalid-token-12345')
           .expect(401);
 
-        expect(response.body).toHaveProperty('error', 'Invalid token');
+        expect(response.body.success).toBe(false);
+        expect(response.body.code).toBe('AUTH_002');
+        expect(response.body.message).toBe('Invalid authentication token');
       });
 
       it('should reject request with expired token', async () => {
@@ -801,7 +848,9 @@ describe('Auth Routes Integration Tests', () => {
           .set('Authorization', `Bearer ${expiredToken}`)
           .expect(401);
 
-        expect(response.body).toHaveProperty('error', 'Invalid token');
+        expect(response.body.success).toBe(false);
+        expect(response.body.code).toBe('AUTH_003');
+        expect(response.body.message).toBe('Authentication token has expired');
       });
 
       it('should reject request with token signed with wrong secret', async () => {
@@ -816,7 +865,9 @@ describe('Auth Routes Integration Tests', () => {
           .set('Authorization', `Bearer ${wrongToken}`)
           .expect(401);
 
-        expect(response.body).toHaveProperty('error', 'Invalid token');
+        expect(response.body.success).toBe(false);
+        expect(response.body.code).toBe('AUTH_002');
+        expect(response.body.message).toBe('Invalid authentication token');
       });
 
       it('should reject request with malformed token', async () => {
@@ -825,7 +876,9 @@ describe('Auth Routes Integration Tests', () => {
           .set('Authorization', 'Bearer malformed.token.here')
           .expect(401);
 
-        expect(response.body).toHaveProperty('error', 'Invalid token');
+        expect(response.body.success).toBe(false);
+        expect(response.body.code).toBe('AUTH_002');
+        expect(response.body.message).toBe('Invalid authentication token');
       });
 
       it('should reject request with empty token', async () => {
@@ -834,7 +887,9 @@ describe('Auth Routes Integration Tests', () => {
           .set('Authorization', 'Bearer ')
           .expect(401);
 
-        expect(response.body).toHaveProperty('error');
+        expect(response.body.success).toBe(false);
+        expect(response.body.code).toBeDefined();
+        expect(response.body.message).toBeDefined();
       });
     });
 
@@ -854,7 +909,9 @@ describe('Auth Routes Integration Tests', () => {
           .expect('Content-Type', /json/)
           .expect(404);
 
-        expect(response.body).toHaveProperty('error', 'User not found');
+        expect(response.body.success).toBe(false);
+        expect(response.body.code).toBe('USER_001');
+        expect(response.body.message).toBe('User not found');
       });
 
       it('should handle deleted user scenario (valid token but no user)', async () => {
@@ -888,7 +945,9 @@ describe('Auth Routes Integration Tests', () => {
           .set('Authorization', `Bearer ${token}`)
           .expect(500);
 
-        expect(response.body).toHaveProperty('error');
+        expect(response.body.success).toBe(false);
+        expect(response.body.code).toBeDefined();
+        expect(response.body.message).toBeDefined();
       });
     });
   });

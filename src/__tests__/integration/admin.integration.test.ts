@@ -6,6 +6,7 @@ import jwt from 'jsonwebtoken';
 import { UserRole } from '../../types';
 import { rbacMiddleware } from '../../middleware/rbac';
 import { authenticate } from '../../middleware/auth';
+import { errorHandler } from '../../middleware/errorHandler';
 
 jest.mock('../../config/database', () => ({
   query: jest.fn(),
@@ -25,6 +26,9 @@ const createTestApp = () => {
 
   app.use(rbacMiddleware);
   app.use('/api/v1/admin', adminRoutes);
+
+  // Add error handler middleware (must be last)
+  app.use(errorHandler);
 
   return app;
 };
@@ -116,7 +120,8 @@ describe('Admin Integration Tests', () => {
         .expect(403);
 
       expect(response.body.success).toBe(false);
-      expect(response.body.error).toBe('Forbidden');
+      expect(response.body.code).toBe('PERM_001');
+      expect(response.body.message).toBeDefined();
       expect(mockQuery).not.toHaveBeenCalled();
     });
 
@@ -127,7 +132,8 @@ describe('Admin Integration Tests', () => {
         .expect(403);
 
       expect(response.body.success).toBe(false);
-      expect(response.body.error).toBe('Forbidden');
+      expect(response.body.code).toBe('PERM_001');
+      expect(response.body.message).toBeDefined();
     });
 
     it('should deny access for driver', async () => {
@@ -137,7 +143,8 @@ describe('Admin Integration Tests', () => {
         .expect(403);
 
       expect(response.body.success).toBe(false);
-      expect(response.body.error).toBe('Forbidden');
+      expect(response.body.code).toBe('PERM_001');
+      expect(response.body.message).toBeDefined();
     });
 
     it('should deny access without authentication', async () => {
@@ -146,7 +153,8 @@ describe('Admin Integration Tests', () => {
         .expect(401);
 
       expect(response.body.success).toBe(false);
-      expect(response.body.error).toBe('Unauthorized');
+      expect(response.body.code).toBe('AUTH_007');
+      expect(response.body.message).toBeDefined();
     });
   });
 
@@ -243,7 +251,7 @@ describe('Admin Integration Tests', () => {
         .expect(404);
 
       expect(response.body.success).toBe(false);
-      expect(response.body.error).toBe('Restaurant not found');
+      expect(response.body.message).toContain('Restaurant not found');
     });
 
     it('should deny access for customer', async () => {
@@ -414,7 +422,7 @@ describe('Admin Integration Tests', () => {
         .expect(403);
 
       expect(response.body.success).toBe(false);
-      expect(response.body.error).toBe('Forbidden');
+      expect(response.body.code).toBe('PERM_002');
       expect(response.body.message).toContain('No permissions defined');
       expect(mockQuery).not.toHaveBeenCalled();
     });
@@ -563,7 +571,7 @@ describe('Admin Integration Tests', () => {
         .expect(404);
 
       expect(response.body.success).toBe(false);
-      expect(response.body.error).toBe('Invoice not found');
+      expect(response.body.message).toContain('Invoice not found');
     });
 
     it('should deny access for customer', async () => {
@@ -652,7 +660,7 @@ describe('Admin Integration Tests', () => {
         .expect(400);
 
       expect(response.body.success).toBe(false);
-      expect(response.body.error).toBe('order_id is required');
+      expect(response.body.message).toContain('order_id is required');
       expect(mockQuery).not.toHaveBeenCalled();
     });
 
@@ -668,7 +676,7 @@ describe('Admin Integration Tests', () => {
         .expect(404);
 
       expect(response.body.success).toBe(false);
-      expect(response.body.error).toBe('Order not found');
+      expect(response.body.message).toContain('Order not found');
     });
 
     it('should deny access for customer', async () => {
@@ -811,7 +819,7 @@ describe('Admin Integration Tests', () => {
         .expect(404);
 
       expect(response.body.success).toBe(false);
-      expect(response.body.error).toBe('Driver not found');
+      expect(response.body.message).toContain('Driver not found');
     });
 
     it('should deny access for customer', async () => {
@@ -864,7 +872,7 @@ describe('Admin Integration Tests', () => {
 
         expect(response.status).toBe(401);
         expect(response.body.success).toBe(false);
-        expect(response.body.error).toBe('Unauthorized');
+        expect(response.body.code).toBe('AUTH_007');
       }
     });
 
@@ -882,7 +890,7 @@ describe('Admin Integration Tests', () => {
 
         expect(response.status).toBe(403);
         expect(response.body.success).toBe(false);
-        expect(response.body.error).toBe('Forbidden');
+        expect(response.body.code).toBe('PERM_001');
       }
     });
 
@@ -900,7 +908,7 @@ describe('Admin Integration Tests', () => {
 
         expect(response.status).toBe(403);
         expect(response.body.success).toBe(false);
-        expect(response.body.error).toBe('Forbidden');
+        expect(response.body.code).toBe('PERM_001');
       }
     });
 
@@ -918,7 +926,7 @@ describe('Admin Integration Tests', () => {
 
         expect(response.status).toBe(403);
         expect(response.body.success).toBe(false);
-        expect(response.body.error).toBe('Forbidden');
+        expect(response.body.code).toBe('PERM_001');
       }
     });
   });
@@ -933,7 +941,7 @@ describe('Admin Integration Tests', () => {
         .expect(500);
 
       expect(response.body.success).toBe(false);
-      expect(response.body.error).toBe('Failed to fetch analytics');
+      expect(response.body.message).toContain('Failed to fetch analytics');
     });
 
     it('should handle database errors in restaurants endpoint', async () => {
@@ -945,7 +953,7 @@ describe('Admin Integration Tests', () => {
         .expect(500);
 
       expect(response.body.success).toBe(false);
-      expect(response.body.error).toBe('Failed to fetch restaurants');
+      expect(response.body.message).toContain('Failed to fetch restaurants');
     });
 
     it('should handle database errors in invoice generation', async () => {
@@ -958,7 +966,7 @@ describe('Admin Integration Tests', () => {
         .expect(500);
 
       expect(response.body.success).toBe(false);
-      expect(response.body.error).toBe('Failed to generate invoice');
+      expect(response.body.message).toContain('Failed to generate invoice');
     });
   });
 });

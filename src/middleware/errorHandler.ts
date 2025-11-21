@@ -343,6 +343,7 @@ export const errorHandler = (
   // Prepare response with error codes
   const errorResponse: any = {
     success: false,
+    error: message,
     code: errorCode,
     message: message,
     suggestedAction: suggestedAction,

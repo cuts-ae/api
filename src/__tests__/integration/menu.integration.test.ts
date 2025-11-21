@@ -200,7 +200,7 @@ describe('Menu Integration Tests', () => {
         .send(validMenuItem);
 
       expect(response.status).toBe(404);
-      expect(response.body.error).toBe('Restaurant not found');
+      expect(response.body.message).toBe('Restaurant not found');
     });
 
     it('should reject when owner tries to create item for another restaurant', async () => {
@@ -214,7 +214,7 @@ describe('Menu Integration Tests', () => {
         .send(validMenuItem);
 
       expect(response.status).toBe(403);
-      expect(response.body.error).toBe('Forbidden');
+      expect(response.body.message).toBe('Not the owner of this restaurant');
     });
 
     it('should reject with missing required fields', async () => {
@@ -550,7 +550,7 @@ describe('Menu Integration Tests', () => {
         .send(updateData);
 
       expect(response.status).toBe(404);
-      expect(response.body.error).toBe('Menu item not found');
+      expect(response.body.message).toBe('Menu item not found');
     });
 
     it('should reject when owner tries to update another restaurant menu item', async () => {
@@ -564,7 +564,7 @@ describe('Menu Integration Tests', () => {
         .send(updateData);
 
       expect(response.status).toBe(403);
-      expect(response.body.error).toBe('Forbidden');
+      expect(response.body.message).toBe('Not the owner of this restaurant');
     });
 
     it('should reject with no valid fields to update', async () => {
@@ -578,7 +578,7 @@ describe('Menu Integration Tests', () => {
         .send({});
 
       expect(response.status).toBe(400);
-      expect(response.body.error).toBe('No valid fields to update');
+      expect(response.body.message).toBe('Request validation failed');
     });
 
     it('should reject with negative price in update', async () => {
@@ -668,7 +668,7 @@ describe('Menu Integration Tests', () => {
         .set('Authorization', `Bearer ${restaurantOwner1Token}`);
 
       expect(response.status).toBe(404);
-      expect(response.body.error).toBe('Menu item not found');
+      expect(response.body.message).toBe('Menu item not found');
     });
 
     it('should reject when owner tries to delete another restaurant menu item', async () => {
@@ -681,7 +681,7 @@ describe('Menu Integration Tests', () => {
         .set('Authorization', `Bearer ${restaurantOwner1Token}`);
 
       expect(response.status).toBe(403);
-      expect(response.body.error).toBe('Forbidden');
+      expect(response.body.message).toBe('Not the owner of this restaurant');
     });
 
     it('should reject without authentication', async () => {
@@ -771,7 +771,7 @@ describe('Menu Integration Tests', () => {
         .send({ is_available: false });
 
       expect(response.status).toBe(404);
-      expect(response.body.error).toBe('Menu item not found');
+      expect(response.body.message).toBe('Menu item not found');
     });
 
     it('should reject when owner tries to toggle another restaurant item', async () => {
@@ -785,7 +785,7 @@ describe('Menu Integration Tests', () => {
         .send({ is_available: false });
 
       expect(response.status).toBe(403);
-      expect(response.body.error).toBe('Forbidden');
+      expect(response.body.message).toBe('Not the owner of this restaurant');
     });
 
     it('should reject without authentication', async () => {
@@ -975,7 +975,7 @@ describe('Menu Integration Tests', () => {
         .send(nutritionData);
 
       expect(response.status).toBe(404);
-      expect(response.body.error).toBe('Menu item not found');
+      expect(response.body.message).toBe('Menu item not found');
     });
 
     it('should reject when owner tries to add nutrition for another restaurant item', async () => {
@@ -989,7 +989,7 @@ describe('Menu Integration Tests', () => {
         .send(nutritionData);
 
       expect(response.status).toBe(403);
-      expect(response.body.error).toBe('Forbidden');
+      expect(response.body.message).toBe('Not the owner of this restaurant');
     });
 
     it('should reject with negative calories', async () => {

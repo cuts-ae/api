@@ -1,8 +1,9 @@
-import { Request, Response } from "express";
+import { Request, Response, NextFunction } from "express";
 import pool from "../config/database";
+import { AppError, NotFoundError } from "../middleware/errorHandler";
 
 // Get platform analytics
-export const getAnalytics = async (req: Request, res: Response) => {
+export const getAnalytics = async (req: Request, res: Response, next: NextFunction) => {
   try {
     // Get total revenue
     const revenueResult = await pool.query(
@@ -75,12 +76,12 @@ export const getAnalytics = async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error("Error fetching analytics:", error);
-    res.status(500).json({ success: false, error: "Failed to fetch analytics" });
+    return next(AppError.createLegacy("Failed to fetch analytics", 500));
   }
 };
 
 // Get all restaurants
-export const getRestaurants = async (req: Request, res: Response) => {
+export const getRestaurants = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const result = await pool.query(`
       SELECT
@@ -98,12 +99,12 @@ export const getRestaurants = async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error("Error fetching restaurants:", error);
-    res.status(500).json({ success: false, error: "Failed to fetch restaurants" });
+    return next(AppError.createLegacy("Failed to fetch restaurants", 500));
   }
 };
 
 // Approve restaurant
-export const approveRestaurant = async (req: Request, res: Response) => {
+export const approveRestaurant = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
 
@@ -113,7 +114,7 @@ export const approveRestaurant = async (req: Request, res: Response) => {
     );
 
     if (result.rows.length === 0) {
-      return res.status(404).json({ success: false, error: "Restaurant not found" });
+      return next(AppError.createLegacy("Restaurant not found", 404));
     }
 
     res.json({
@@ -123,12 +124,12 @@ export const approveRestaurant = async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error("Error approving restaurant:", error);
-    res.status(500).json({ success: false, error: "Failed to approve restaurant" });
+    return next(AppError.createLegacy("Failed to approve restaurant", 500));
   }
 };
 
 // Get all drivers
-export const getDrivers = async (req: Request, res: Response) => {
+export const getDrivers = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const result = await pool.query(`
       SELECT *
@@ -143,12 +144,12 @@ export const getDrivers = async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error("Error fetching drivers:", error);
-    res.status(500).json({ success: false, error: "Failed to fetch drivers" });
+    return next(AppError.createLegacy("Failed to fetch drivers", 500));
   }
 };
 
 // Approve driver
-export const approveDriver = async (req: Request, res: Response) => {
+export const approveDriver = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
 
@@ -158,7 +159,7 @@ export const approveDriver = async (req: Request, res: Response) => {
     );
 
     if (result.rows.length === 0) {
-      return res.status(404).json({ success: false, error: "Driver not found" });
+      return next(AppError.createLegacy("Driver not found", 404));
     }
 
     res.json({
@@ -168,12 +169,12 @@ export const approveDriver = async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error("Error approving driver:", error);
-    res.status(500).json({ success: false, error: "Failed to approve driver" });
+    return next(AppError.createLegacy("Failed to approve driver", 500));
   }
 };
 
 // Get invoice details by ID
-export const getInvoiceDetails = async (req: Request, res: Response) => {
+export const getInvoiceDetails = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
 
@@ -204,7 +205,7 @@ export const getInvoiceDetails = async (req: Request, res: Response) => {
     `, [id]);
 
     if (invoiceResult.rows.length === 0) {
-      return res.status(404).json({ success: false, error: "Invoice not found" });
+      return next(AppError.createLegacy("Invoice not found", 404));
     }
 
     // Get order items for this invoice
@@ -232,12 +233,12 @@ export const getInvoiceDetails = async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error("Error fetching invoice details:", error);
-    res.status(500).json({ success: false, error: "Failed to fetch invoice details" });
+    return next(AppError.createLegacy("Failed to fetch invoice details", 500));
   }
 };
 
 // Get all invoices
-export const getInvoices = async (req: Request, res: Response) => {
+export const getInvoices = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const result = await pool.query(`
       SELECT
@@ -267,17 +268,17 @@ export const getInvoices = async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error("Error fetching invoices:", error);
-    res.status(500).json({ success: false, error: "Failed to fetch invoices" });
+    return next(AppError.createLegacy("Failed to fetch invoices", 500));
   }
 };
 
 // Generate invoice
-export const generateInvoice = async (req: Request, res: Response) => {
+export const generateInvoice = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { order_id, invoice_type = 'standard', amount, notes } = req.body;
 
     if (!order_id) {
-      return res.status(400).json({ success: false, error: "order_id is required" });
+      return next(AppError.createLegacy("order_id is required", 400));
     }
 
     // Get the next invoice number for this order
@@ -290,7 +291,7 @@ export const generateInvoice = async (req: Request, res: Response) => {
     // Get order details
     const orderResult = await pool.query('SELECT total_amount, payment_status FROM orders WHERE id = $1', [order_id]);
     if (orderResult.rows.length === 0) {
-      return res.status(404).json({ success: false, error: "Order not found" });
+      return next(AppError.createLegacy("Order not found", 404));
     }
 
     const order = orderResult.rows[0];
@@ -311,12 +312,12 @@ export const generateInvoice = async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error("Error generating invoice:", error);
-    res.status(500).json({ success: false, error: "Failed to generate invoice" });
+    return next(AppError.createLegacy("Failed to generate invoice", 500));
   }
 };
 
 // Get all users
-export const getUsers = async (req: Request, res: Response) => {
+export const getUsers = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const result = await pool.query(`
       SELECT
@@ -340,12 +341,12 @@ export const getUsers = async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error("Error fetching users:", error);
-    res.status(500).json({ success: false, error: "Failed to fetch users" });
+    return next(AppError.createLegacy("Failed to fetch users", 500));
   }
 };
 
 // Get all orders
-export const getOrders = async (req: Request, res: Response) => {
+export const getOrders = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const result = await pool.query(`
       SELECT
@@ -367,12 +368,12 @@ export const getOrders = async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error("Error fetching orders:", error);
-    res.status(500).json({ success: false, error: "Failed to fetch orders" });
+    return next(AppError.createLegacy("Failed to fetch orders", 500));
   }
 };
 
 // Get order details by ID
-export const getOrderDetails = async (req: Request, res: Response) => {
+export const getOrderDetails = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
 
@@ -392,7 +393,7 @@ export const getOrderDetails = async (req: Request, res: Response) => {
     `, [id]);
 
     if (result.rows.length === 0) {
-      return res.status(404).json({ success: false, error: "Order not found" });
+      return next(AppError.createLegacy("Order not found", 404));
     }
 
     res.json({
@@ -401,6 +402,6 @@ export const getOrderDetails = async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error("Error fetching order details:", error);
-    res.status(500).json({ success: false, error: "Failed to fetch order details" });
+    return next(AppError.createLegacy("Failed to fetch order details", 500));
   }
 };
