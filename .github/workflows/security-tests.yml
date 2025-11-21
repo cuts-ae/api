@@ -44,17 +44,9 @@ jobs:
         EOF
 
     - name: Run authentication bypass tests
-      run: npm test -- auth-bypass.security.test.ts --coverage --maxWorkers=2
+      run: npm test -- auth-bypass.security.test.ts --maxWorkers=2
       env:
         NODE_ENV: test
-
-    - name: Upload auth bypass coverage
-      uses: codecov/codecov-action@v4
-      with:
-        files: ./coverage/clover.xml
-        flags: security-auth
-        name: auth-bypass-coverage
-      continue-on-error: true
 
   rate-limit-tests:
     name: Rate Limiting Tests
@@ -93,17 +85,9 @@ jobs:
         EOF
 
     - name: Run rate limiting tests
-      run: npm test -- rate-limit.security.test.ts --coverage --maxWorkers=2
+      run: npm test -- rate-limit.security.test.ts --maxWorkers=2
       env:
         NODE_ENV: test
-
-    - name: Upload rate limit coverage
-      uses: codecov/codecov-action@v4
-      with:
-        files: ./coverage/clover.xml
-        flags: security-ratelimit
-        name: rate-limit-coverage
-      continue-on-error: true
 
   xss-tests:
     name: XSS Security Tests
@@ -157,7 +141,7 @@ jobs:
         EOF
 
     - name: Run XSS security tests
-      run: npm test -- xss.security.test.ts --coverage --maxWorkers=2
+      run: npm test -- xss.security.test.ts --maxWorkers=2
       env:
         NODE_ENV: test
         DB_HOST: localhost
@@ -165,15 +149,6 @@ jobs:
         DB_NAME: cuts_test
         DB_USER: postgres
         DB_PASSWORD: postgres
-      continue-on-error: true
-
-    - name: Upload XSS coverage
-      uses: codecov/codecov-action@v4
-      with:
-        files: ./coverage/clover.xml
-        flags: security-xss
-        name: xss-coverage
-      continue-on-error: true
 
   sql-injection-tests:
     name: SQL Injection Security Tests
@@ -227,7 +202,7 @@ jobs:
         EOF
 
     - name: Run SQL injection security tests
-      run: npm test -- sql-injection.security.test.ts --coverage --maxWorkers=2
+      run: npm test -- sql-injection.security.test.ts --maxWorkers=2
       env:
         NODE_ENV: test
         DB_HOST: localhost
@@ -235,11 +210,3 @@ jobs:
         DB_NAME: cuts_test
         DB_USER: postgres
         DB_PASSWORD: postgres
-
-    - name: Upload SQL injection coverage
-      uses: codecov/codecov-action@v4
-      with:
-        files: ./coverage/clover.xml
-        flags: security-sql
-        name: sql-injection-coverage
-      continue-on-error: true
