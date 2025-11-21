@@ -174,3 +174,72 @@ jobs:
         flags: security-xss
         name: xss-coverage
       continue-on-error: true
+
+  sql-injection-tests:
+    name: SQL Injection Security Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: cuts_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    strategy:
+      matrix:
+        node-version: [20.x]
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Create .env.test file
+      run: |
+        cat > .env.test << EOF
+        NODE_ENV=test
+        PORT=45000
+        DB_HOST=localhost
+        DB_PORT=5432
+        DB_NAME=cuts_test
+        DB_USER=postgres
+        DB_PASSWORD=postgres
+        JWT_SECRET=test-secret-key-for-ci-cd-pipeline-12345
+        UPLOAD_DIR=./uploads
+        EOF
+
+    - name: Run SQL injection security tests
+      run: npm test -- sql-injection.security.test.ts --coverage --maxWorkers=2
+      env:
+        NODE_ENV: test
+        DB_HOST: localhost
+        DB_PORT: 5432
+        DB_NAME: cuts_test
+        DB_USER: postgres
+        DB_PASSWORD: postgres
+
+    - name: Upload SQL injection coverage
+      uses: codecov/codecov-action@v4
+      with:
+        files: ./coverage/clover.xml
+        flags: security-sql
+        name: sql-injection-coverage
+      continue-on-error: true
