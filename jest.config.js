@@ -46,7 +46,7 @@ module.exports = {
   },
   moduleFileExtensions: ['ts', 'js', 'json'],
   verbose: true,
-  forceExit: false,
+  forceExit: true,
   clearMocks: true,
   resetMocks: true,
   restoreMocks: true,
