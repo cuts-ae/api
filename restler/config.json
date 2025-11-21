@@ -1,0 +1,220 @@
+{
+  "SwaggerSpecFilePath": ["openapi.yaml"],
+  "GrammarOutputDirectoryPath": "./Compile",
+  "IncludeOptionalParameters": true,
+  "UseBodyExamples": true,
+  "UseQueryExamples": true,
+  "UseHeaderExamples": true,
+  "DiscoverExamples": true,
+  "ResolveQueryDependencies": true,
+  "ResolveBodyDependencies": true,
+  "ResolveHeaderDependencies": true,
+  "DataFuzzing": true,
+  "ReadOnlyFuzz": false,
+  "CustomDictionary": {
+    "restler_custom_payload": {
+      "email": [
+        "test@cuts.ae",
+        "admin@cuts.ae",
+        "support@cuts.ae",
+        "restaurant@cuts.ae",
+        "customer@cuts.ae"
+      ],
+      "password": [
+        "TestPassword123!",
+        "SecurePass456!",
+        "FuzzTest789!"
+      ],
+      "first_name": [
+        "John",
+        "Jane",
+        "Test",
+        "Fuzz"
+      ],
+      "last_name": [
+        "Doe",
+        "Smith",
+        "User",
+        "Tester"
+      ],
+      "phone": [
+        "+971501234567",
+        "+971521234567",
+        "+971561234567"
+      ],
+      "name": [
+        "Test Restaurant",
+        "Fuzzy Eatery",
+        "Sample Cafe"
+      ],
+      "description": [
+        "A test restaurant for fuzzing",
+        "Sample description for testing"
+      ],
+      "cuisine_type": [
+        ["Mediterranean", "Healthy"],
+        ["Italian", "Vegetarian"],
+        ["Asian", "Vegan"]
+      ],
+      "street": [
+        "123 Test Street",
+        "456 Fuzzy Avenue",
+        "789 Sample Road"
+      ],
+      "city": [
+        "Dubai",
+        "Abu Dhabi",
+        "Sharjah"
+      ],
+      "state": [
+        "Dubai",
+        "Abu Dhabi",
+        "Sharjah"
+      ],
+      "postal_code": [
+        "12345",
+        "54321",
+        "98765"
+      ],
+      "country": [
+        "United Arab Emirates",
+        "UAE"
+      ],
+      "category": [
+        "breakfast",
+        "lunch",
+        "dinner",
+        "snacks",
+        "beverages"
+      ],
+      "role": [
+        "customer",
+        "restaurant_owner",
+        "driver",
+        "admin",
+        "support"
+      ],
+      "status": [
+        "pending",
+        "confirmed",
+        "preparing",
+        "ready",
+        "picked_up",
+        "in_transit",
+        "delivered",
+        "cancelled"
+      ],
+      "priority": [
+        "low",
+        "medium",
+        "high",
+        "urgent"
+      ],
+      "subject": [
+        "Test Support Ticket",
+        "Fuzzing Test Issue",
+        "Sample Problem Report"
+      ],
+      "message": [
+        "This is a test message",
+        "Fuzzing test content",
+        "Sample support message"
+      ],
+      "reason": [
+        "Testing cancellation functionality with sufficient text length",
+        "Fuzzing order cancellation with proper reason string"
+      ],
+      "serving_size": [
+        "100g",
+        "1 cup",
+        "250ml"
+      ]
+    },
+    "restler_custom_payload_uuid4_suffix": {
+      "menu_item_id": [
+        "00000000-0000-0000-0000-000000000001",
+        "00000000-0000-0000-0000-000000000002"
+      ],
+      "restaurant_id": [
+        "00000000-0000-0000-0000-000000000001",
+        "00000000-0000-0000-0000-000000000002"
+      ]
+    }
+  },
+  "AuthenticationToken": {
+    "token_refresh_interval": 300,
+    "token_refresh_command": "python3 get_token.py"
+  },
+  "EngineSettings": {
+    "max_sequence_length": 100,
+    "max_request_execution_time": 30,
+    "time_budget": 3600,
+    "checkers": {
+      "useafterfree": {
+        "mode": "exhaustive"
+      },
+      "leakagerule": {
+        "mode": "exhaustive"
+      },
+      "resourcehierarchy": {
+        "mode": "exhaustive"
+      },
+      "usebeforefree": {
+        "mode": "exhaustive"
+      },
+      "namespacerule": {
+        "mode": "exhaustive"
+      },
+      "invaliddynamicobject": {
+        "mode": "exhaustive"
+      },
+      "payloadbody": {
+        "mode": "exhaustive"
+      },
+      "examples": {
+        "mode": "exhaustive"
+      }
+    },
+    "no_ssl": true,
+    "path_regex": null,
+    "per_resource_settings": {
+      "/api/v1/auth/login": {
+        "producer_timing_delay": 1,
+        "create_once": false
+      },
+      "/api/v1/auth/register": {
+        "producer_timing_delay": 1,
+        "create_once": false
+      },
+      "/api/v1/orders": {
+        "producer_timing_delay": 2
+      },
+      "/api/v1/restaurants": {
+        "producer_timing_delay": 2
+      }
+    },
+    "global_producer_timing_delay": 1,
+    "max_combinations": 20,
+    "test_all_combinations": false,
+    "include_user_agent": true,
+    "user_agent": "RESTler/9.2.3 (Cuts.ae Security Testing)",
+    "host": "localhost",
+    "target_port": 45000,
+    "request_throttle_ms": 100
+  },
+  "CheckerOptions": {
+    "InvalidDynamicObjectChecker": {
+      "InvalidValueChecker": {
+        "strictSSRF": true
+      }
+    }
+  },
+  "FuzzingMode": "directed-smoke-test",
+  "TargetIp": "localhost",
+  "TargetPort": 45000,
+  "MaxConcurrentRequests": 1,
+  "ConnectionSettings": {
+    "ProducerTimingDelay": 1,
+    "RequestThrottleMs": 100
+  }
+}

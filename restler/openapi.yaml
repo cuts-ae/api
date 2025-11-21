@@ -1,0 +1,2454 @@
+openapi: 3.0.3
+info:
+  title: Cuts.ae Food Delivery Platform API
+  description: REST API for UAE Health-Focused Catering Platform
+  version: 1.0.0
+  contact:
+    name: Cuts.ae Development Team
+
+servers:
+  - url: http://localhost:45000/api/v1
+    description: Local development server
+  - url: http://84.8.146.121:45000/api/v1
+    description: Production server
+
+security:
+  - bearerAuth: []
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: string
+        message:
+          type: string
+
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        first_name:
+          type: string
+        last_name:
+          type: string
+        role:
+          type: string
+          enum: [customer, restaurant_owner, driver, admin, support]
+        phone:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    Restaurant:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        owner_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        slug:
+          type: string
+        logo_url:
+          type: string
+          format: uri
+        banner_url:
+          type: string
+          format: uri
+        description:
+          type: string
+        cuisine_type:
+          type: array
+          items:
+            type: string
+        address:
+          $ref: '#/components/schemas/Address'
+        phone:
+          type: string
+        email:
+          type: string
+          format: email
+        commission_rate:
+          type: number
+          format: float
+        is_active:
+          type: boolean
+        operating_hours:
+          type: object
+          additionalProperties:
+            type: object
+            properties:
+              open:
+                type: string
+              close:
+                type: string
+              is_closed:
+                type: boolean
+        average_prep_time:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    MenuItem:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        restaurant_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        image_url:
+          type: string
+          format: uri
+        base_price:
+          type: number
+          format: float
+          minimum: 0
+        category:
+          type: string
+          enum: [breakfast, lunch, dinner, snacks, beverages]
+        is_available:
+          type: boolean
+        prep_time:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    NutritionalInfo:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        menu_item_id:
+          type: string
+          format: uuid
+        serving_size:
+          type: string
+        calories:
+          type: number
+          minimum: 0
+        protein:
+          type: number
+          minimum: 0
+        carbohydrates:
+          type: number
+          minimum: 0
+        fat:
+          type: number
+          minimum: 0
+        fiber:
+          type: number
+          minimum: 0
+        sugar:
+          type: number
+          minimum: 0
+        sodium:
+          type: number
+          minimum: 0
+        allergens:
+          type: array
+          items:
+            type: string
+
+    Order:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        order_number:
+          type: string
+        customer_id:
+          type: string
+          format: uuid
+        restaurants:
+          type: array
+          items:
+            type: string
+            format: uuid
+        status:
+          type: string
+          enum: [pending, confirmed, preparing, ready, picked_up, in_transit, delivered, cancelled]
+        delivery_address:
+          $ref: '#/components/schemas/Address'
+        delivery_instructions:
+          type: string
+        scheduled_for:
+          type: string
+          format: date-time
+        subtotal:
+          type: number
+          format: float
+        delivery_fee:
+          type: number
+          format: float
+        service_fee:
+          type: number
+          format: float
+        total_amount:
+          type: number
+          format: float
+        payment_status:
+          type: string
+          enum: [pending, paid, failed, refunded]
+        driver_id:
+          type: string
+          format: uuid
+        estimated_delivery_time:
+          type: string
+          format: date-time
+        actual_delivery_time:
+          type: string
+          format: date-time
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    Address:
+      type: object
+      required:
+        - street
+        - city
+        - state
+        - postal_code
+        - country
+      properties:
+        street:
+          type: string
+          minLength: 1
+        city:
+          type: string
+          minLength: 1
+        state:
+          type: string
+          minLength: 1
+        postal_code:
+          type: string
+          minLength: 1
+        country:
+          type: string
+          minLength: 1
+        latitude:
+          type: number
+          format: float
+        longitude:
+          type: number
+          format: float
+
+    Ticket:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        subject:
+          type: string
+        status:
+          type: string
+          enum: [open, in_progress, resolved, closed]
+        priority:
+          type: string
+          enum: [low, medium, high, urgent]
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    ChatSession:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [active, closed]
+        created_at:
+          type: string
+          format: date-time
+
+paths:
+  # Health Check Endpoints
+  /:
+    get:
+      tags:
+        - Health
+      summary: Root health check
+      security: []
+      responses:
+        '200':
+          description: API is running
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  version:
+                    type: string
+                  status:
+                    type: string
+
+  /health:
+    get:
+      tags:
+        - Health
+      summary: Health check endpoint
+      security: []
+      responses:
+        '200':
+          description: API is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  timestamp:
+                    type: string
+
+  # Authentication Endpoints
+  /auth/register:
+    post:
+      tags:
+        - Authentication
+      summary: Register a new user
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+                - first_name
+                - last_name
+                - role
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  minLength: 8
+                first_name:
+                  type: string
+                  minLength: 2
+                last_name:
+                  type: string
+                  minLength: 2
+                phone:
+                  type: string
+                role:
+                  type: string
+                  enum: [customer, restaurant_owner, driver, admin, support]
+      responses:
+        '201':
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  user:
+                    $ref: '#/components/schemas/User'
+                  token:
+                    type: string
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: User already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: Login user
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  minLength: 1
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  user:
+                    $ref: '#/components/schemas/User'
+                  token:
+                    type: string
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/me:
+    get:
+      tags:
+        - Authentication
+      summary: Get current user profile
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: User profile retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  user:
+                    $ref: '#/components/schemas/User'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/profile:
+    put:
+      tags:
+        - Authentication
+      summary: Update user profile
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                first_name:
+                  type: string
+                  minLength: 2
+                last_name:
+                  type: string
+                  minLength: 2
+                phone:
+                  type: string
+      responses:
+        '200':
+          description: Profile updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  user:
+                    $ref: '#/components/schemas/User'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  # Restaurant Endpoints
+  /restaurants:
+    get:
+      tags:
+        - Restaurants
+      summary: Get all restaurants
+      security: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: List of restaurants
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  restaurants:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Restaurant'
+
+    post:
+      tags:
+        - Restaurants
+      summary: Create a new restaurant
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - cuisine_type
+                - address
+                - phone
+                - email
+                - operating_hours
+              properties:
+                name:
+                  type: string
+                  minLength: 2
+                description:
+                  type: string
+                cuisine_type:
+                  type: array
+                  items:
+                    type: string
+                address:
+                  $ref: '#/components/schemas/Address'
+                phone:
+                  type: string
+                email:
+                  type: string
+                  format: email
+                operating_hours:
+                  type: object
+                  additionalProperties:
+                    type: object
+                    properties:
+                      open:
+                        type: string
+                      close:
+                        type: string
+                      is_closed:
+                        type: boolean
+                average_prep_time:
+                  type: integer
+                  minimum: 0
+      responses:
+        '201':
+          description: Restaurant created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  restaurant:
+                    $ref: '#/components/schemas/Restaurant'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /restaurants/{id}:
+    get:
+      tags:
+        - Restaurants
+      summary: Get restaurant by ID
+      security: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Restaurant details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  restaurant:
+                    $ref: '#/components/schemas/Restaurant'
+        '404':
+          description: Restaurant not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    put:
+      tags:
+        - Restaurants
+      summary: Update restaurant
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  minLength: 2
+                description:
+                  type: string
+                cuisine_type:
+                  type: array
+                  items:
+                    type: string
+                address:
+                  $ref: '#/components/schemas/Address'
+                phone:
+                  type: string
+                email:
+                  type: string
+                  format: email
+                operating_hours:
+                  type: object
+                average_prep_time:
+                  type: integer
+                is_active:
+                  type: boolean
+      responses:
+        '200':
+          description: Restaurant updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  restaurant:
+                    $ref: '#/components/schemas/Restaurant'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Restaurant not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /restaurants/my/restaurants:
+    get:
+      tags:
+        - Restaurants
+      summary: Get my restaurants
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of user's restaurants
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  restaurants:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Restaurant'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /restaurants/{id}/analytics:
+    get:
+      tags:
+        - Restaurants
+      summary: Get restaurant analytics
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Restaurant analytics
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  analytics:
+                    type: object
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /restaurants/{id}/operating-status:
+    patch:
+      tags:
+        - Restaurants
+      summary: Update restaurant operating status
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                is_active:
+                  type: boolean
+      responses:
+        '200':
+          description: Operating status updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  # Menu Endpoints
+  /restaurants/{restaurantId}/menu-items:
+    get:
+      tags:
+        - Menu
+      summary: Get menu items for a restaurant
+      security: []
+      parameters:
+        - name: restaurantId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: List of menu items
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/MenuItem'
+
+    post:
+      tags:
+        - Menu
+      summary: Create menu item
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: restaurantId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - base_price
+                - category
+              properties:
+                name:
+                  type: string
+                  minLength: 2
+                description:
+                  type: string
+                image_url:
+                  type: string
+                  format: uri
+                base_price:
+                  type: number
+                  minimum: 0
+                category:
+                  type: string
+                  enum: [breakfast, lunch, dinner, snacks, beverages]
+                is_available:
+                  type: boolean
+                  default: true
+                prep_time:
+                  type: integer
+                  minimum: 0
+      responses:
+        '201':
+          description: Menu item created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  item:
+                    $ref: '#/components/schemas/MenuItem'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /menu-items/{id}:
+    put:
+      tags:
+        - Menu
+      summary: Update menu item
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  minLength: 2
+                description:
+                  type: string
+                image_url:
+                  type: string
+                  format: uri
+                base_price:
+                  type: number
+                  minimum: 0
+                category:
+                  type: string
+                  enum: [breakfast, lunch, dinner, snacks, beverages]
+                is_available:
+                  type: boolean
+                prep_time:
+                  type: integer
+                  minimum: 0
+      responses:
+        '200':
+          description: Menu item updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  item:
+                    $ref: '#/components/schemas/MenuItem'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Menu item not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    delete:
+      tags:
+        - Menu
+      summary: Delete menu item
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Menu item deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Menu item not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /menu-items/{id}/availability:
+    patch:
+      tags:
+        - Menu
+      summary: Toggle menu item availability
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                is_available:
+                  type: boolean
+      responses:
+        '200':
+          description: Availability updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /menu-items/{id}/nutrition:
+    post:
+      tags:
+        - Menu
+      summary: Add nutrition information
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - serving_size
+                - calories
+                - protein
+                - carbohydrates
+                - fat
+              properties:
+                serving_size:
+                  type: string
+                calories:
+                  type: number
+                  minimum: 0
+                protein:
+                  type: number
+                  minimum: 0
+                carbohydrates:
+                  type: number
+                  minimum: 0
+                fat:
+                  type: number
+                  minimum: 0
+                fiber:
+                  type: number
+                  minimum: 0
+                sugar:
+                  type: number
+                  minimum: 0
+                sodium:
+                  type: number
+                  minimum: 0
+                allergens:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        '201':
+          description: Nutrition information added
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  nutrition:
+                    $ref: '#/components/schemas/NutritionalInfo'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  # Order Endpoints
+  /orders:
+    get:
+      tags:
+        - Orders
+      summary: Get user's orders
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [pending, confirmed, preparing, ready, picked_up, in_transit, delivered, cancelled]
+      responses:
+        '200':
+          description: List of orders
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  orders:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Order'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    post:
+      tags:
+        - Orders
+      summary: Create a new order
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - items
+                - delivery_address
+              properties:
+                items:
+                  type: array
+                  minItems: 1
+                  items:
+                    type: object
+                    required:
+                      - menu_item_id
+                      - restaurant_id
+                      - quantity
+                    properties:
+                      menu_item_id:
+                        type: string
+                        format: uuid
+                      restaurant_id:
+                        type: string
+                        format: uuid
+                      quantity:
+                        type: integer
+                        minimum: 1
+                      selected_variants:
+                        type: array
+                        items:
+                          type: string
+                          format: uuid
+                      special_instructions:
+                        type: string
+                delivery_address:
+                  $ref: '#/components/schemas/Address'
+                delivery_instructions:
+                  type: string
+                scheduled_for:
+                  type: string
+                  format: date-time
+      responses:
+        '201':
+          description: Order created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  order:
+                    $ref: '#/components/schemas/Order'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /orders/{id}:
+    get:
+      tags:
+        - Orders
+      summary: Get order by ID
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Order details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  order:
+                    $ref: '#/components/schemas/Order'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Order not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /orders/{id}/status:
+    patch:
+      tags:
+        - Orders
+      summary: Update order status
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - status
+              properties:
+                status:
+                  type: string
+                  enum: [pending, confirmed, preparing, ready, picked_up, in_transit, delivered, cancelled]
+      responses:
+        '200':
+          description: Order status updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  order:
+                    $ref: '#/components/schemas/Order'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Order not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /orders/{id}/cancel:
+    post:
+      tags:
+        - Orders
+      summary: Cancel an order
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - reason
+              properties:
+                reason:
+                  type: string
+                  minLength: 10
+      responses:
+        '200':
+          description: Order cancelled
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  order:
+                    $ref: '#/components/schemas/Order'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Order not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  # Admin Endpoints
+  /admin/analytics:
+    get:
+      tags:
+        - Admin
+      summary: Get platform analytics
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Platform analytics
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  analytics:
+                    type: object
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - Admin access required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /admin/restaurants:
+    get:
+      tags:
+        - Admin
+      summary: Get all restaurants (admin)
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of all restaurants
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  restaurants:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Restaurant'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /admin/restaurants/{id}/approve:
+    post:
+      tags:
+        - Admin
+      summary: Approve a restaurant
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Restaurant approved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /admin/drivers:
+    get:
+      tags:
+        - Admin
+      summary: Get all drivers
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of drivers
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  drivers:
+                    type: array
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /admin/drivers/{id}/approve:
+    post:
+      tags:
+        - Admin
+      summary: Approve a driver
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Driver approved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /admin/invoices:
+    get:
+      tags:
+        - Admin
+      summary: Get all invoices
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of invoices
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  invoices:
+                    type: array
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /admin/invoices/{id}:
+    get:
+      tags:
+        - Admin
+      summary: Get invoice details
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Invoice details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  invoice:
+                    type: object
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /admin/invoices/generate:
+    post:
+      tags:
+        - Admin
+      summary: Generate invoice
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                restaurant_id:
+                  type: string
+                  format: uuid
+                period_start:
+                  type: string
+                  format: date
+                period_end:
+                  type: string
+                  format: date
+      responses:
+        '201':
+          description: Invoice generated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  invoice:
+                    type: object
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /admin/users:
+    get:
+      tags:
+        - Admin
+      summary: Get all users
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of users
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  users:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/User'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /admin/orders:
+    get:
+      tags:
+        - Admin
+      summary: Get all orders (admin)
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of all orders
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  orders:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Order'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /admin/orders/{id}:
+    get:
+      tags:
+        - Admin
+      summary: Get order details (admin)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Order details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  order:
+                    $ref: '#/components/schemas/Order'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  # Support Endpoints
+  /support/auth/login:
+    post:
+      tags:
+        - Support
+      summary: Support agent login
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  user:
+                    $ref: '#/components/schemas/User'
+                  token:
+                    type: string
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /support/auth/me:
+    get:
+      tags:
+        - Support
+      summary: Get support agent profile
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Support agent profile
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  user:
+                    $ref: '#/components/schemas/User'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /support/tickets:
+    get:
+      tags:
+        - Support
+      summary: Get all support tickets
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [open, in_progress, resolved, closed]
+        - name: priority
+          in: query
+          schema:
+            type: string
+            enum: [low, medium, high, urgent]
+      responses:
+        '200':
+          description: List of tickets
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  tickets:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Ticket'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    post:
+      tags:
+        - Support
+      summary: Create a support ticket
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - subject
+                - description
+              properties:
+                subject:
+                  type: string
+                  minLength: 5
+                description:
+                  type: string
+                  minLength: 10
+                priority:
+                  type: string
+                  enum: [low, medium, high, urgent]
+                  default: medium
+      responses:
+        '201':
+          description: Ticket created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  ticket:
+                    $ref: '#/components/schemas/Ticket'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /support/tickets/{id}:
+    get:
+      tags:
+        - Support
+      summary: Get ticket details
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Ticket details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  ticket:
+                    $ref: '#/components/schemas/Ticket'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Ticket not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /support/tickets/{id}/replies:
+    post:
+      tags:
+        - Support
+      summary: Add reply to ticket
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - message
+              properties:
+                message:
+                  type: string
+                  minLength: 1
+      responses:
+        '201':
+          description: Reply added
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /support/tickets/{id}/status:
+    patch:
+      tags:
+        - Support
+      summary: Update ticket status
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - status
+              properties:
+                status:
+                  type: string
+                  enum: [open, in_progress, resolved, closed]
+      responses:
+        '200':
+          description: Status updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /support/tickets/{id}/priority:
+    patch:
+      tags:
+        - Support
+      summary: Update ticket priority
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - priority
+              properties:
+                priority:
+                  type: string
+                  enum: [low, medium, high, urgent]
+      responses:
+        '200':
+          description: Priority updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /support/tickets/{id}/chat:
+    post:
+      tags:
+        - Support
+      summary: Create chat session from ticket
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '201':
+          description: Chat session created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  session:
+                    $ref: '#/components/schemas/ChatSession'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  # Chat Endpoints
+  /chat/sessions:
+    get:
+      tags:
+        - Chat
+      summary: Get active chat sessions
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of active sessions
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  sessions:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ChatSession'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    post:
+      tags:
+        - Chat
+      summary: Create a new chat session
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                subject:
+                  type: string
+      responses:
+        '201':
+          description: Chat session created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  session:
+                    $ref: '#/components/schemas/ChatSession'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /chat/sessions/my:
+    get:
+      tags:
+        - Chat
+      summary: Get user's chat sessions
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of user sessions
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  sessions:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ChatSession'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /chat/sessions/{sessionId}:
+    get:
+      tags:
+        - Chat
+      summary: Get chat session details
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Chat session details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  session:
+                    $ref: '#/components/schemas/ChatSession'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /chat/sessions/{sessionId}/messages:
+    get:
+      tags:
+        - Chat
+      summary: Get messages for a session
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: List of messages
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  messages:
+                    type: array
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    post:
+      tags:
+        - Chat
+      summary: Send message in chat session
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+                attachments:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+      responses:
+        '201':
+          description: Message sent
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /chat/sessions/{sessionId}/read:
+    post:
+      tags:
+        - Chat
+      summary: Mark messages as read
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Messages marked as read
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /chat/sessions/{sessionId}/assign:
+    post:
+      tags:
+        - Chat
+      summary: Assign agent to chat session
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                agent_id:
+                  type: string
+                  format: uuid
+      responses:
+        '200':
+          description: Agent assigned
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /chat/sessions/{sessionId}/status:
+    patch:
+      tags:
+        - Chat
+      summary: Update chat session status
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - status
+              properties:
+                status:
+                  type: string
+                  enum: [active, closed]
+      responses:
+        '200':
+          description: Status updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /chat/upload:
+    post:
+      tags:
+        - Chat
+      summary: Upload attachment
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                files:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+      responses:
+        '200':
+          description: Attachment uploaded
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  files:
+                    type: array
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
