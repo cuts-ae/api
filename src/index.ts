@@ -51,8 +51,8 @@ app.use(
 );
 
 // JSON parsing with error handling
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Catch JSON parsing errors and return 400 instead of 500
 app.use((err: any, req: Request, res: Response, next: any) => {
