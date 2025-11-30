@@ -258,4 +258,42 @@ router.post('/massive', async (req: Request, res: Response) => {
   }
 });
 
+// Restore endpoint - accepts SQL dump and executes it
+router.post('/restore', async (req: Request, res: Response) => {
+  const { secret, sql } = req.body;
+
+  if (secret !== SEED_SECRET) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  if (!sql || typeof sql !== 'string') {
+    return res.status(400).json({ error: 'SQL dump required' });
+  }
+
+  try {
+    console.log(`Executing SQL restore (${sql.length} bytes)...`);
+    await pool.query(sql);
+
+    // Get counts
+    const counts = await pool.query(`
+      SELECT
+        (SELECT COUNT(*) FROM users) as users,
+        (SELECT COUNT(*) FROM restaurants) as restaurants,
+        (SELECT COUNT(*) FROM menu_items) as menu_items,
+        (SELECT COUNT(*) FROM orders) as orders,
+        (SELECT COUNT(*) FROM invoices) as invoices
+    `);
+
+    console.log('Restore completed successfully');
+    res.json({
+      success: true,
+      message: 'Database restored successfully!',
+      counts: counts.rows[0]
+    });
+  } catch (error) {
+    console.error('Restore error:', error);
+    res.status(500).json({ error: 'Restore failed', details: String(error) });
+  }
+});
+
 export default router;
