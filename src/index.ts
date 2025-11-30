@@ -30,6 +30,11 @@ const allowedOrigins = [
   "http://localhost:45004",
   "http://84.8.146.121:45001",
   "https://restaurant.trylassen.com",
+  "https://admin.cuts.ae",
+  "https://restaurant.cuts.ae",
+  "https://support.cuts.ae",
+  "https://cuts.ae",
+  "https://www.cuts.ae",
 ];
 
 app.use(
