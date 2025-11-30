@@ -270,12 +270,37 @@ router.post('/restore', async (req: Request, res: Response) => {
     return res.status(400).json({ error: 'SQL dump required' });
   }
 
+  const client = await pool.connect();
   try {
     console.log(`Executing SQL restore (${sql.length} bytes)...`);
-    await pool.query(sql);
+
+    // Split SQL into statements and execute each
+    const statements = sql
+      .split(';')
+      .map(s => s.trim())
+      .filter(s => s.length > 0 && !s.startsWith('--') && !s.startsWith('SELECT pg_catalog'));
+
+    await client.query('BEGIN');
+
+    let executed = 0;
+    for (const stmt of statements) {
+      try {
+        await client.query(stmt);
+        executed++;
+      } catch (stmtError: any) {
+        console.error(`Statement failed: ${stmt.substring(0, 100)}...`, stmtError.message);
+        // Continue on non-critical errors
+        if (!stmtError.message.includes('does not exist') &&
+            !stmtError.message.includes('already exists')) {
+          throw stmtError;
+        }
+      }
+    }
+
+    await client.query('COMMIT');
 
     // Get counts
-    const counts = await pool.query(`
+    const counts = await client.query(`
       SELECT
         (SELECT COUNT(*) FROM users) as users,
         (SELECT COUNT(*) FROM restaurants) as restaurants,
@@ -284,15 +309,20 @@ router.post('/restore', async (req: Request, res: Response) => {
         (SELECT COUNT(*) FROM invoices) as invoices
     `);
 
-    console.log('Restore completed successfully');
+    console.log(`Restore completed: ${executed}/${statements.length} statements`);
     res.json({
       success: true,
       message: 'Database restored successfully!',
+      executed,
+      total: statements.length,
       counts: counts.rows[0]
     });
   } catch (error) {
+    await client.query('ROLLBACK');
     console.error('Restore error:', error);
     res.status(500).json({ error: 'Restore failed', details: String(error) });
+  } finally {
+    client.release();
   }
 });
 
