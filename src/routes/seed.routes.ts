@@ -181,7 +181,9 @@ router.post('/massive', async (req: Request, res: Response) => {
       const serviceFee = Math.round(subtotal * 0.05 * 100) / 100;
       const total = subtotal + deliveryFee + serviceFee;
 
-      orderInserts.push(`('d${padded}00-0000-0000-0000-00000000${padded}', 'ORD-${new Date(Date.now() - daysAgo * 86400000).toISOString().slice(0, 10).replace(/-/g, '')}-${padded}', '${customerId}', ARRAY['${restaurantId}']::uuid[], '${status}', '${address}'::jsonb, ${subtotal}, ${deliveryFee}, ${serviceFee}, ${total}, '${paymentStatus}', NOW() - INTERVAL '${daysAgo} days', NOW() - INTERVAL '${daysAgo} days')`);
+      // UUID format: 8-4-4-4-12 (32 hex chars + 4 dashes = 36 chars)
+      const orderUUID = `d${String(i).padStart(7, '0')}-0000-0000-0000-${String(i).padStart(12, '0')}`;
+      orderInserts.push(`('${orderUUID}', 'ORD-${new Date(Date.now() - daysAgo * 86400000).toISOString().slice(0, 10).replace(/-/g, '')}-${padded}', '${customerId}', ARRAY['${restaurantId}']::uuid[], '${status}', '${address}'::jsonb, ${subtotal}, ${deliveryFee}, ${serviceFee}, ${total}, '${paymentStatus}', NOW() - INTERVAL '${daysAgo} days', NOW() - INTERVAL '${daysAgo} days')`);
     }
     await pool.query(`INSERT INTO orders (id, order_number, customer_id, restaurants, status, delivery_address, subtotal, delivery_fee, service_fee, total_amount, payment_status, created_at, updated_at) VALUES ${orderInserts.join(',')}`);
     console.log('Inserted 500 orders');
@@ -189,8 +191,7 @@ router.post('/massive', async (req: Request, res: Response) => {
     // Insert order items (1-3 per order)
     const orderItemInserts: string[] = [];
     for (let i = 1; i <= 500; i++) {
-      const padded = String(i).padStart(5, '0');
-      const orderId = `d${padded}00-0000-0000-0000-00000000${padded}`;
+      const orderUUID = `d${String(i).padStart(7, '0')}-0000-0000-0000-${String(i).padStart(12, '0')}`;
       const itemCount = 1 + Math.floor(Math.random() * 3);
       const restaurantIdx = Math.floor(Math.random() * 5);
       const restaurantId = restaurantIds[restaurantIdx];
@@ -199,7 +200,7 @@ router.post('/massive', async (req: Request, res: Response) => {
       for (let j = 0; j < itemCount; j++) {
         const menuItem = restaurantMenuItems[Math.floor(Math.random() * restaurantMenuItems.length)];
         const quantity = 1 + Math.floor(Math.random() * 2);
-        orderItemInserts.push(`('${orderId}', '${menuItem.id}', '${restaurantId}', ${quantity}, ${menuItem.price}, ${menuItem.price * quantity}, '{"calories": 450, "protein": 35, "carbohydrates": 45, "fat": 18}'::jsonb)`);
+        orderItemInserts.push(`('${orderUUID}', '${menuItem.id}', '${restaurantId}', ${quantity}, ${menuItem.price}, ${menuItem.price * quantity}, '{"calories": 450, "protein": 35, "carbohydrates": 45, "fat": 18}'::jsonb)`);
       }
     }
     // Insert in batches
@@ -214,6 +215,7 @@ router.post('/massive', async (req: Request, res: Response) => {
     const invoiceInserts = [];
     for (let i = 1; i <= 200; i++) {
       const padded = String(i).padStart(4, '0');
+      const invoiceUUID = `f${String(i).padStart(7, '0')}-0000-0000-0000-${String(i).padStart(12, '0')}`;
       const restaurantId = restaurantIds[Math.floor(Math.random() * 5)];
       const monthsAgo = Math.floor(Math.random() * 12);
       const grossAmount = 5000 + Math.floor(Math.random() * 25000);
@@ -221,7 +223,7 @@ router.post('/massive', async (req: Request, res: Response) => {
       const netAmount = grossAmount - commissionAmount;
       const status = ['pending', 'paid', 'paid', 'paid', 'paid'][Math.floor(Math.random() * 5)];
 
-      invoiceInserts.push(`('f${padded}0000-0000-0000-0000-00000000${padded}', 'INV-${new Date(Date.now() - monthsAgo * 30 * 86400000).toISOString().slice(0, 7).replace('-', '')}-${padded}', 'restaurant_payout', '${restaurantId}', (NOW() - INTERVAL '${monthsAgo} months')::date, (NOW() - INTERVAL '${monthsAgo - 1} months')::date, ${50 + Math.floor(Math.random() * 200)}, ${grossAmount}, ${commissionAmount}, ${netAmount}, '${status}', NOW() - INTERVAL '${monthsAgo} months')`);
+      invoiceInserts.push(`('${invoiceUUID}', 'INV-${new Date(Date.now() - monthsAgo * 30 * 86400000).toISOString().slice(0, 7).replace('-', '')}-${padded}', 'restaurant_payout', '${restaurantId}', (NOW() - INTERVAL '${monthsAgo} months')::date, (NOW() - INTERVAL '${monthsAgo - 1} months')::date, ${50 + Math.floor(Math.random() * 200)}, ${grossAmount}, ${commissionAmount}, ${netAmount}, '${status}', NOW() - INTERVAL '${monthsAgo} months')`);
     }
     await pool.query(`INSERT INTO invoices (id, invoice_number, type, entity_id, period_start, period_end, total_orders, gross_amount, commission_amount, net_amount, status, created_at) VALUES ${invoiceInserts.join(',')}`);
     console.log('Inserted 200 invoices');
