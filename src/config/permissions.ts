@@ -36,6 +36,9 @@ export const ENDPOINT_PERMISSIONS: EndpointPermissions = {
   // Static file serving
   'GET /uploads/*': ['*'],
 
+  // Seed endpoint (protected by secret key in body)
+  'POST /api/v1/seed/massive': ['*'],
+
   // ========================================
   // AUTHENTICATION ENDPOINTS
   // ========================================

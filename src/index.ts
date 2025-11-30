@@ -10,6 +10,7 @@ import orderRoutes from "./routes/order.routes";
 import adminRoutes from "./routes/admin.routes";
 import supportRoutes from "./routes/support.routes";
 import chatRoutes from "./routes/chat.routes";
+import seedRoutes from "./routes/seed.routes";
 import { errorHandler } from "./middleware/errorHandler";
 import { ChatSocketServer } from "./socket/chat.socket";
 import { rbacMiddleware } from "./middleware/rbac";
@@ -99,6 +100,7 @@ app.use("/api/v1/orders", orderRoutes);
 app.use("/api/v1/admin", adminRoutes);
 app.use("/api/v1/support", supportRoutes);
 app.use("/api/v1/chat", chatRoutes);
+app.use("/api/v1/seed", seedRoutes);
 
 // 404 handler
 app.use((req: Request, res: Response) => {
