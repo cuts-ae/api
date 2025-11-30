@@ -280,20 +280,37 @@ router.post('/restore', async (req: Request, res: Response) => {
       .map(s => s.trim())
       .filter(s => s.length > 0 && !s.startsWith('--') && !s.startsWith('SELECT pg_catalog'));
 
-    await client.query('BEGIN');
+    // Run truncates first without transaction
+    const truncates = statements.filter(s => s.toUpperCase().startsWith('TRUNCATE'));
+    const inserts = statements.filter(s => !s.toUpperCase().startsWith('TRUNCATE') && !s.toUpperCase().startsWith('SET'));
 
+    // Execute truncates
+    for (const stmt of truncates) {
+      try {
+        await client.query(stmt);
+      } catch (e: any) {
+        console.log(`Truncate warning: ${e.message}`);
+      }
+    }
+
+    // Execute inserts in batches
+    await client.query('BEGIN');
     let executed = 0;
-    for (const stmt of statements) {
+    let failed = 0;
+    const errors: string[] = [];
+
+    for (const stmt of inserts) {
       try {
         await client.query(stmt);
         executed++;
       } catch (stmtError: any) {
-        console.error(`Statement failed: ${stmt.substring(0, 100)}...`, stmtError.message);
-        // Continue on non-critical errors
-        if (!stmtError.message.includes('does not exist') &&
-            !stmtError.message.includes('already exists')) {
-          throw stmtError;
+        failed++;
+        if (errors.length < 5) {
+          errors.push(`${stmt.substring(0, 80)}: ${stmtError.message}`);
         }
+        // Rollback and restart transaction on error
+        await client.query('ROLLBACK');
+        await client.query('BEGIN');
       }
     }
 
@@ -309,13 +326,15 @@ router.post('/restore', async (req: Request, res: Response) => {
         (SELECT COUNT(*) FROM invoices) as invoices
     `);
 
-    console.log(`Restore completed: ${executed}/${statements.length} statements`);
+    console.log(`Restore completed: ${executed} succeeded, ${failed} failed`);
     res.json({
       success: true,
       message: 'Database restored successfully!',
       executed,
-      total: statements.length,
-      counts: counts.rows[0]
+      failed,
+      total: inserts.length,
+      counts: counts.rows[0],
+      errors: errors.length > 0 ? errors : undefined
     });
   } catch (error) {
     await client.query('ROLLBACK');
